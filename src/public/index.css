@@ -6,7 +6,7 @@ body {
 
 h1 {
     text-align: center;
-    color: #4d3586;
+    color: #b388ff;
 }
 
 /* The player as a whole, excluding the header */
@@ -82,6 +82,14 @@ h1 {
     color: white;
 }
 
+/* The volume slider */
+
+.vol-control {
+    position: relative;
+    top: 50%;
+    transform: translateY(50%);
+}
+
 /* Song name shown as entry in playlist */
 
 .songText {
@@ -127,4 +135,11 @@ h1 {
 
 .border-purple {
     border: solid 2px #7c4dff;
+}
+
+/* Center horizontally */
+.abs-center-x {
+    position: absolute;
+    left: 50%;
+    transform: translateX(-50%);
 }
