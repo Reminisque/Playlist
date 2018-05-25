@@ -1,0 +1,149 @@
+html {
+    height: 100%;
+}
+body {
+    height: 100%;
+    width: 100%;
+    background: #1f2433;
+}
+
+h1 {
+    text-align: center;
+    color: #b388ff;
+}
+
+/* The player as a whole, excluding the header */
+
+#player {
+    height: 100%;
+    max-height: 940px;
+    /* border: solid 2px rgb(77, 53, 134); */
+}
+
+/* The sidebar of the player; made of the playlist and its menu*/
+
+#side {
+    height: 100%;
+    min-width: 366px;
+    color: #b388ff;
+    border-right: solid 2px #b388ff;
+    word-spacing: 2px;
+}
+
+#side .btn {
+    border: none;
+    background: none;
+    color: #b388ff;
+    padding: 0px 30px;
+    border-radius: 0px;
+    -webkit-transition-duration: 0.6s;
+    -moz-animation-duration: 0.6s;
+    transition-duration: 0.6s;
+}
+
+#side .btn:hover {
+    cursor: pointer;
+}
+
+#side .btn.active {
+    background: #b388ff;
+    color: #1f2433;
+}
+
+#side .btn:active {
+    transition-duration: 5ms;
+    transform: translateY(1px);
+    color: white;
+}
+
+/* The playlist section*/
+
+#song-playlist {
+    height: 100%;
+    max-height: 736px;
+    overflow-y: auto;
+}
+
+#song-playlist .btn {
+    width: 100%;
+    margin-top: 10px;
+}
+
+#song-playlist .btn:hover {
+    background: #b388ff;
+    color: #1f2433;
+}
+
+/* The area where current song information is displayed */
+
+#content {
+    color: white;
+}
+
+/* The player menu area */
+
+#playmenu {
+    color: white;
+}
+
+/* The volume slider */
+
+.vol-control {
+    position: relative;
+    top: 50%;
+    transform: translateY(50%);
+}
+
+/* Song name shown as entry in playlist */
+
+.songText {
+    display: block;
+    overflow: hidden;
+    text-align: center;
+    text-overflow: ellipsis;
+}
+
+/* CSS GRID for player layout*/
+
+.app-grid {
+    display: grid;
+    grid-template-columns: 1fr 3fr;
+    grid-template-rows: 5fr 1fr;
+    grid-gap: 10px;
+    grid-template-areas: 
+    "sidebar content" 
+    "playmenu playmenu"
+}
+
+.app-grid-sidebar {
+    grid-area: sidebar;
+}
+
+.app-grid-content {
+    grid-area: content;
+}
+
+.app-grid-playmenu {
+    grid-area: playmenu;
+}
+
+/* Misc. */
+
+/* Make icon appear clickable without need for button; Use alongside onclick attribute */
+
+.iconClick {
+    cursor: pointer;
+}
+
+/* Makes a solid purple border around content */
+
+.border-purple {
+    border: solid 2px #7c4dff;
+}
+
+/* Center horizontally */
+.abs-center-x {
+    position: absolute;
+    left: 50%;
+    transform: translateX(-50%);
+}
