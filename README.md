@@ -4,7 +4,7 @@ A simple node.js audio player that streams and plays audio files stormed on loca
 
 Default port is 5000
 
-Instructions:
+## Instruction 
 Put your audio files in the **playlist** folder
 Open terminal and **cd** to the project directory
 Run **npm install** to get express and other necessary modules
