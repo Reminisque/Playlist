@@ -10,7 +10,7 @@ var shuffle = 0;
 gainNode.connect(analyserNode);
 analyserNode.connect(context.destination);
 
-analyserNode.fftSize = 256;
+analyserNode.fftSize = 128;
 var frequencyData = new Uint8Array(analyserNode.frequencyBinCount);
 
 // Loads songs from folder in back end, creates an entry for
@@ -164,6 +164,7 @@ function currentIndex() {
     return playlistIndex;
 }
 
+// Toggle on and off repeat
 function toggleRepeat() {
     if (repeat) {
         repeat = 0;
@@ -172,6 +173,7 @@ function toggleRepeat() {
     }
 }
 
+// Toggle on and off shuffle
 function toggleShuffle() {
     if (shuffle) {
         shuffle = 0;
@@ -180,16 +182,35 @@ function toggleShuffle() {
     }
 }
 
+// Update the volume value
 function setVolume(value) {
     gainNode.gain.setValueAtTime(value/50, context.currentTime);
 }
 
+// Draw and continuously update the frequency bar graph
 function updateFreq() {
     requestAnimationFrame(updateFreq);
 
     analyserNode.getByteFrequencyData(frequencyData);
 
+    var canvas = document.getElementById("analyserCanvas");
+    var context = canvas.getContext("2d");
+    var bufferLength = analyserNode.frequencyBinCount;
 
+    var barWidth =  (canvas.width/bufferLength) * 2;
+    var barHeight;
+    var startX = 0;
+
+    context.fillStyle = "white";
+    context.fillRect(0, 0, canvas.width, canvas.height);
+
+    for (var i = 0; i < bufferLength; i++) {
+        barHeight = frequencyData[i];
+        context.fillStyle = "rgb(" + barHeight + ",50,50)";
+        context.fillRect(startX, canvas.height-barHeight*2, barWidth, canvas.height);
+
+        startX += barWidth + 1;
+    }
 }
 
 function init() {
@@ -212,8 +233,8 @@ function init() {
     console.log(content.offsetWidth + " " + content.offsetHeight);
     canvas.width = content.offsetWidth;
     canvas.height = content.offsetHeight;
-    context.fillStyle = "white";
-    context.fillRect(0, 0, canvas.width, canvas.height);
+
+    updateFreq();
 }
 
 init();
