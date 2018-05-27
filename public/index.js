@@ -201,12 +201,11 @@ function updateFreq() {
     var barHeight;
     var startX = 0;
 
-    context.fillStyle = "white";
-    context.fillRect(0, 0, canvas.width, canvas.height);
+    context.clearRect(0, 0, canvas.width, canvas.height);
 
     for (var i = 0; i < bufferLength; i++) {
         barHeight = frequencyData[i];
-        context.fillStyle = "rgb(" + barHeight + ",50,50)";
+        context.fillStyle = "#b388ff";
         context.fillRect(startX, canvas.height-barHeight*2, barWidth, canvas.height);
 
         startX += barWidth + 1;
