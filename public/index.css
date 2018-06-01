@@ -45,19 +45,20 @@ h1 {
     cursor: pointer;
 }
 
+/* Side button active toggle state */
 #side .btn.active {
     background: #b388ff;
     color: #1f2433;
 }
 
+/* Animate side button when clicked */
 #side .btn:active {
     transition-duration: 5ms;
     transform: translateY(1px);
     color: white;
 }
 
-/* The playlist section*/
-
+/* The playlist area */
 #song-playlist {
     height: 100%;
     max-height: 736px;
@@ -69,25 +70,17 @@ h1 {
     margin-top: 10px;
 }
 
-#song-playlist .btn:hover {
-    background: #b388ff;
-    color: #1f2433;
-}
-
 /* The area where current song information is displayed */
-
 #content {
     color: white;
 }
 
 /* The player menu area */
-
 #playmenu {
     color: white;
 }
 
 /* The volume slider */
-
 .vol-control {
     position: relative;
     top: 50%;
@@ -95,7 +88,6 @@ h1 {
 }
 
 /* Song name shown as entry in playlist */
-
 .songText {
     display: block;
     overflow: hidden;
@@ -104,7 +96,6 @@ h1 {
 }
 
 /* CSS GRID for player layout*/
-
 .app-grid {
     display: grid;
     grid-template-columns: 1fr 3fr;
@@ -130,13 +121,11 @@ h1 {
 /* Misc. */
 
 /* Make icon appear clickable without need for button; Use alongside onclick attribute */
-
 .iconClick {
     cursor: pointer;
 }
 
 /* Makes a solid purple border around content */
-
 .border-purple {
     border: solid 2px #7c4dff;
 }
