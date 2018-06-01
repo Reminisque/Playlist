@@ -70,7 +70,6 @@ function streamSong(songName) {
     xhttp.onload = function () {
         context.decodeAudioData(xhttp.response, function (getBuffer) {
             var songs = document.getElementsByClassName("song");
-            console.log(songs);
             
             // Stop the current song
             if (songBuffer !== null) {
