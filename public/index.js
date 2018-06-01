@@ -45,8 +45,8 @@ function loadSongs() {
                 newSong.classList.add("btn", "btn-lg", "song");
                 newSong.setAttribute("type", "button");
                 newSong.setAttribute("onclick", "streamSong('" + myarray[i] + "')");
-                newSong.setAttribute("data-toggle", "button");
-                newSong.setAttribute("aria-pressed", "falsed");
+                // newSong.setAttribute("data-toggle", "button");
+                // newSong.setAttribute("aria-pressed", "falsed");
 
                 // Add song entry to the playlist
                 playlist.appendChild(newSong);
@@ -69,11 +69,14 @@ function streamSong(songName) {
     xhttp.responseType = "arraybuffer";
     xhttp.onload = function () {
         context.decodeAudioData(xhttp.response, function (getBuffer) {
+            var songs = document.getElementsByClassName("song");
+            console.log(songs);
+            
             // Stop the current song
             if (songBuffer !== null) {
                 songBuffer.disconnect();
             }
-            // Create new audio buffer, set the buffer to audio data
+            // Create new audio buffer and set the buffer to audio data
             songBuffer = context.createBufferSource();
             songBuffer.buffer = getBuffer;
             // When the song ends play the next song
@@ -85,7 +88,15 @@ function streamSong(songName) {
             if (context.state === "suspended") {
                 playPause();
             }
+            // Unselect the button for the current song
+            if (playlistIndex !== -1) {
+                songs[playlistIndex].classList.remove("active");
+            }
+            // Set the current playlist index to new index
             playlistIndex = songIndex(songName);
+            // Select the button for the new song
+            songs[playlistIndex].classList.add("active");
+
             // Play the song
             songBuffer.start(0);
         });
@@ -160,6 +171,7 @@ function playPrev(index) {
     }
 }
 
+// Get the playlist index of the current song
 function currentIndex() {
     return playlistIndex;
 }
@@ -206,12 +218,16 @@ function updateFreq() {
     for (var i = 0; i < bufferLength; i++) {
         barHeight = frequencyData[i];
         context.fillStyle = "#b388ff";
-        context.fillRect(startX, canvas.height-barHeight*2, barWidth, canvas.height);
+        context.fillRect(startX, canvas.height-barHeight*2.5, barWidth, canvas.height);
 
         startX += barWidth + 1;
     }
 }
 
+// Initializes the app
+// - Loads the songs from the playlist folder as links to stream the songs
+// - Sets functionality for all menu buttons
+// - Creates the canvas for the visualiation
 function init() {
     loadSongs();
     document.getElementById("play-button").setAttribute("onclick", "playPause()");
