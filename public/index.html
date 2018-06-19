@@ -5,7 +5,7 @@
     <!-- AngularJS CDN -->
     <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.5.6/angular.min.js"></script>
     <!-- Font Awesome CDN -->
-    <script defer src="https://use.fontawesome.com/releases/v5.0.8/js/all.js"></script>
+    <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.0.13/css/all.css" integrity="sha384-DNOHZ68U8hZfKXOrtjWvjxusGo9WQnrNx2sqG0tfsghAvtVlRW3tvkXWZh58N9jp" crossorigin="anonymous">
     <!-- Bootstrap 4 CSS -->
     <link href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm"
         crossorigin="anonymous">
@@ -41,12 +41,15 @@
         </div>
         <div class="app-grid-content" id="content">
             <canvas id="analyserCanvas"></canvas>
+            <audio id="audio" controls>
+                <source src="song/01 Love.m4a" type="audio/mpeg">
+            </audio>
         </div>
         <div class="app-grid-playmenu p-4" id="playmenu">
             <nav class="navbar">
                 <div class="iconClick abs-center-x">
                     <i class="fas fa-backward fa-4x" id="bwd-button"></i>
-                    <i class="fas fa-pause-circle fa-4x" id="play-button"></i>
+                    <i class="fas fa-play-circle fa-4x" id="play-button"></i>
                     <i class="fas fa-forward fa-4x" id="fwd-button"></i>
                 </div>
                 <div class="ml-auto">
@@ -63,7 +66,7 @@
     <!-- Bootstrap Javascript -->
     <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js" integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl"
         crossorigin="anonymous"></script>
-    <script src="index.js"></script>
+    <script src="client.js"></script>
 </body>
 
 </html>
