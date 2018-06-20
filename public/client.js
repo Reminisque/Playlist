@@ -59,6 +59,12 @@ var nodePlaylist = (function () {
         }
     }
 
+    function streamSong(songName) {
+        audio.setAttribute("src", "song/" + songName);
+        audio.load();
+        playPause();
+    }
+
     function bind() {
         addButton.addEventListener("click", getPlaylist);
         playButton.setAttribute("onclick", "nodePlaylist.playPause()");
@@ -71,7 +77,8 @@ var nodePlaylist = (function () {
         play: playButton,
         playPause: playPause,
         bind: bind,
-        audio: audio
+        audio: audio,
+        streamSong: streamSong
     }
 })();
 
