@@ -2,7 +2,11 @@ var nodePlaylist = (function () {
     var audioCtx = new AudioContext();
     var gain = audioCtx.createGain();
     var songs = [];
+    var shuffled = [];
     var playlistIndex = 0;
+    var shuffleIndex = 0;
+    var shuffle = 0;
+    var repeat = 0;
 
     var songPlaylist = document.querySelector("#song-playlist");
     var audio = document.querySelector("#audio");
@@ -12,9 +16,12 @@ var nodePlaylist = (function () {
     var bwdButton = document.querySelector("#bwd-button");
     var fwdButton = document.querySelector("#fwd-button");
     var volume = document.querySelector("#vol-control");
+    var shuffleBtn = document.querySelector("#shuffle-button");
+    var repeatBtn = document.querySelector("#repeat-button");
+    
 
-    audio.onended = nextSong();
-
+    // Requests from server the names of all currently stored songs
+    // and saves them in song array
     function getPlaylist() {
         return new Promise(function(resolve, reject) {
             var xhttp = new XMLHttpRequest();
@@ -24,18 +31,20 @@ var nodePlaylist = (function () {
                     songs = [];
 
                     for (var i = 0; i < playlist.length; i++) {
-                        songs.push(playlist[i]);
+                        var pair = {};
+                        pair[playlist[i]] = i;
+                        songs.push(pair);
                     }
                     
                     resolve("Got the playlist. Check song array.");
                 }
             };
-
             xhttp.open("GET", "playlist", true);
             xhttp.send();
         });
     }
 
+    // Creates the playlist using the songs curently stored in songs array
     function createPlaylist() {
         for (var i = 0; i < songs.length; i++) {
             var songButton = document.createElement("button");
@@ -64,6 +73,7 @@ var nodePlaylist = (function () {
         }
     }
 
+    // Switches play button between play and pause icons
     function togglePlayIcon() {
         if (playButton.classList.contains("fa-play-circle")) {
             playButton.classList.remove("fa-play-circle");
@@ -80,6 +90,7 @@ var nodePlaylist = (function () {
             .then(response => response.blob())
             .then(blob => {
                 audio.src = URL.createObjectURL(blob);
+                playlistIndex = songIndex(songName);
                 return playPause();
             });
     }
@@ -90,6 +101,9 @@ var nodePlaylist = (function () {
     function nextSong() {
         if (playlistIndex < songs.length - 1) {
             streamSong(songs[++playlistIndex]);
+        } else if (playlistIndex === songs.length && repeat) {
+            playlistIndex = 0;
+            streamSong(songs[0]);
         }
     }
 
@@ -101,19 +115,57 @@ var nodePlaylist = (function () {
         }
     }
 
+    // Set volume to specified value
     function setVolume(value) {
         audio.volume = value/50;
+    }
+
+    // Toggles shuffling
+    function toggleShuffle() {
+        if (shuffle) {
+            shuffle = 0;
+        } else {
+            shuffle = 1;
+        }
+        return shuffle;
+    }
+    // Toggle repeating
+    function toggleRepeat() {
+        if (repeat) {
+            repeat = 0;
+        } else {
+            repeat = 1;
+        }
+        return repeat;
+    }
+
+    // Switch the icon of play button and play next song
+    function songEnd() {
+        togglePlayIcon();
+        nextSong();
+    }
+
+    // Get a song's index in the playlist
+    function songIndex(song) {
+        for (var i = 0; i < songs.length; i++) {
+            if (songs[i] === song) {
+                return i;
+            }
+        }
     }
 
     // Bind click events and other interactions to controls
     function bind() {
         addButton.addEventListener("click", getPlaylist);
-        audio.addEventListener("ended", togglePlayIcon);
+        shuffleBtn.addEventListener("click", toggleShuffle);
+        repeatBtn.addEventListener("click", toggleRepeat);
+        audio.addEventListener("ended", songEnd);
         playButton.setAttribute("onclick", "nodePlaylist.playPause()");
         bwdButton.setAttribute("onclick", "nodePlaylist.prevSong()");
         fwdButton.setAttribute("onclick", "nodePlaylist.nextSong()");
         volume.setAttribute("oninput", "nodePlaylist.setVolume(this.value)");
         volume.setAttribute("onchange", "nodePlaylist.setVolume(this.value)");
+    
     }
 
     function init() {
@@ -132,6 +184,8 @@ var nodePlaylist = (function () {
         prevSong: prevSong,
         nextSong: nextSong,
         setVolume: setVolume,
+        shuffle: toggleShuffle,
+        repeat: toggleRepeat,
         init: init
     }
 
