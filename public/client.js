@@ -3,7 +3,7 @@ var nodePlaylist = (function () {
     var gain = audioCtx.createGain();
     var songs = [];
     var shuffled = [];
-    var playlistIndex = 0;
+    var playlistIndex = -1;
     var shuffleIndex = 0;
     var shuffle = 0;
     var repeat = 0;
@@ -18,10 +18,11 @@ var nodePlaylist = (function () {
     var volume = document.querySelector("#vol-control");
     var shuffleBtn = document.querySelector("#shuffle-button");
     var repeatBtn = document.querySelector("#repeat-button");
+    var songButtons;
     
 
     // Requests from server the names of all currently stored songs
-    // and saves them in song array
+    //  and saves them in song array
     function getPlaylist() {
         return new Promise(function(resolve, reject) {
             var xhttp = new XMLHttpRequest();
@@ -58,15 +59,24 @@ var nodePlaylist = (function () {
 
             songPlaylist.appendChild(songButton);
         }
+
+        songButtons = document.getElementsByClassName("song");
     }
 
+    // Plays and pauses the song and toggles the play button icon
+    //  based on audio state (playing or paused)
     function playPause() {
-        if (audio.paused) {
-            togglePlayIcon();  
+        // Check for audio source is included to prevent an interrupt 
+        //  error when there is no audio loaded and user attempts to
+        //  stream a song after having toggled the play button
+        if (audio.paused && audio.src) {
+            playButton.classList.remove("fa-play-circle");
+            playButton.classList.add("fa-pause-circle");
             return audio.play();
 
         } else {
-            togglePlayIcon();
+            playButton.classList.remove("fa-pause-circle");
+            playButton.classList.add("fa-play-circle");
             return audio.pause();
         }
     }
@@ -88,28 +98,33 @@ var nodePlaylist = (function () {
             .then(response => response.blob())
             .then(blob => {
                 audio.src = URL.createObjectURL(blob);
+                if (playlistIndex >= 0) {
+                    songButtons[playlistIndex].classList.remove("active");
+                }
                 playlistIndex = songIndex(songName);
+                songButtons[playlistIndex].classList.add("active");
                 return playPause();
             });
     }
-
 
     // Play the next song
     // Binded to fwdButton in bind function
     function nextSong() {
         if (playlistIndex < songs.length - 1) {
-            streamSong(songs[++playlistIndex]);
-        } else if (playlistIndex === songs.length && repeat) {
-            playlistIndex = 0;
+            streamSong(songs[playlistIndex+1]);
+        } else if (playlistIndex === songs.length-1 && repeat) {
             streamSong(songs[0]);
         }
+        
     }
 
     // Play the previous song
     // Binded to bwdButton in bind function
     function prevSong() {
         if (playlistIndex > 0) {
-            streamSong(songs[--playlistIndex]);
+            streamSong(songs[playlistIndex-1]);
+        } else if (playlistIndex === 0 && repeat) {
+            streamSong(songs[songs.length-1]);
         }
     }
 
@@ -144,9 +159,9 @@ var nodePlaylist = (function () {
     }
 
     // Get a song's index in the playlist
-    function songIndex(song) {
+    function songIndex(songName) {
         for (var i = 0; i < songs.length; i++) {
-            if (songs[i] === song) {
+            if (songs[i] === songName) {
                 return i;
             }
         }
