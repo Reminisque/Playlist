@@ -31,9 +31,7 @@ var nodePlaylist = (function () {
                     songs = [];
 
                     for (var i = 0; i < playlist.length; i++) {
-                        var pair = {};
-                        pair[playlist[i]] = i;
-                        songs.push(pair);
+                        songs.push(playlist[i]);
                     }
                     
                     resolve("Got the playlist. Check song array.");
