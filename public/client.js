@@ -2,7 +2,7 @@ var nodePlaylist = (function () {
     var audioCtx = new AudioContext();
     var gain = audioCtx.createGain();
     var songs = [];
-    var shuffled = [];
+    var shuffled = [];  // Shuffled song indeces
     var playlistIndex = -1;
     var shuffleIndex = 0;
     var shuffle = 0;
@@ -107,15 +107,48 @@ var nodePlaylist = (function () {
             });
     }
 
+    function randomize(arr) {
+        for (var i = arr.length - 1; i > 0; i--) {
+            var randomIndex = Math.floor(Math.random() * (i + 1));
+            var temp = arr[i];
+            arr[i] = arr[randomIndex];
+            arr[randomIndex] = temp;
+        }
+        return arr;
+    }
+    
+    function createShuffle() {
+        shuffled = [];
+        for (var i = 0; i < songs.length; i++) {
+            shuffled.push(i);
+        }
+        return randomize(shuffled);
+    }
+
     // Play the next song
     // Binded to fwdButton in bind function
     function nextSong() {
-        if (playlistIndex < songs.length - 1) {
-            streamSong(songs[playlistIndex+1]);
-        } else if (playlistIndex === songs.length-1 && repeat) {
-            streamSong(songs[0]);
-        }
-        
+        if (shuffle) {
+            if (shuffleIndex < shuffled.length - 1) {
+                streamSong(songs[shuffled[shuffleIndex]]);
+                console.log ("Shuffle Index: " + shuffleIndex
+                + " --song-> " + shuffled[shuffleIndex]);
+                shuffleIndex += 1;
+            } else if (shuffleIndex >= shuffled.length - 1 && repeat) {
+                streamSong(songs[shuffled[0]]);
+                shuffleIndex = 0;
+                console.log ("Shuffle Index: " + shuffleIndex
+                + " --song-> " + shuffled[shuffleIndex]);
+            }     
+
+        } else {
+            if (playlistIndex < songs.length - 1) {
+                streamSong(songs[playlistIndex+1]);
+            } else if (playlistIndex >= songs.length - 1 && repeat) {
+                streamSong(songs[0]);
+            }
+            console.log ("Playlist Index: " + (playlistIndex + 1));
+        }  
     }
 
     // Play the previous song
@@ -123,9 +156,10 @@ var nodePlaylist = (function () {
     function prevSong() {
         if (playlistIndex > 0) {
             streamSong(songs[playlistIndex-1]);
-        } else if (playlistIndex === 0 && repeat) {
+        } else if (playlistIndex <= 0 && repeat) {
             streamSong(songs[songs.length-1]);
         }
+        return ("Playlist Index: " + playlistIndex);
     }
 
     // Set volume to specified value
@@ -139,9 +173,12 @@ var nodePlaylist = (function () {
             shuffle = 0;
         } else {
             shuffle = 1;
+            shuffleIndex = 0;
+            console.log(createShuffle());
         }
         return shuffle;
     }
+
     // Toggle repeating
     function toggleRepeat() {
         if (repeat) {
@@ -152,12 +189,6 @@ var nodePlaylist = (function () {
         return repeat;
     }
 
-    // Switch the icon of play button and play next song
-    function songEnd() {
-        togglePlayIcon();
-        nextSong();
-    }
-
     // Get a song's index in the playlist
     function songIndex(songName) {
         for (var i = 0; i < songs.length; i++) {
@@ -166,6 +197,17 @@ var nodePlaylist = (function () {
             }
         }
     }
+
+    function songEnd() {
+        nextSong();
+        togglePlayIcon();
+    }
+
+    function getShuffled() {
+        return shuffled;
+    }
+    
+
 
     // Bind click events and other interactions to controls
     function bind() {
@@ -178,7 +220,6 @@ var nodePlaylist = (function () {
         fwdButton.setAttribute("onclick", "nodePlaylist.nextSong()");
         volume.setAttribute("oninput", "nodePlaylist.setVolume(this.value)");
         volume.setAttribute("onchange", "nodePlaylist.setVolume(this.value)");
-    
     }
 
     function init() {
@@ -187,7 +228,6 @@ var nodePlaylist = (function () {
             createPlaylist();
         });
     }
-
 
     return {
         play: playButton,
@@ -198,10 +238,12 @@ var nodePlaylist = (function () {
         nextSong: nextSong,
         setVolume: setVolume,
         shuffle: toggleShuffle,
+        createShuffle: createShuffle,
+        shuffleIndex: shuffleIndex,
         repeat: toggleRepeat,
+        shuffled: getShuffled,
         init: init
     }
-
 })();
 
 nodePlaylist.init();
