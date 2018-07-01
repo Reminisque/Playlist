@@ -1,25 +1,29 @@
 var nodePlaylist = (function () {
+    const audio = document.querySelector("#audio");
+    const addButton = document.querySelector("#add-button");
+    const bwdButton = document.querySelector("#bwd-button");
+    const canvas = document.querySelector("#analyserCanvas");
+    const fwdButton = document.querySelector("#fwd-button");
+    const playButton = document.querySelector("#play-button");
+    const repeatBtn = document.querySelector("#repeat-button");
+    const shuffleBtn = document.querySelector("#shuffle-button");
+    const songPlaylist = document.querySelector("#song-playlist");
+    const volume = document.querySelector("#vol-control");
+    var songButtons;
+
     var audioCtx = new AudioContext();
+    var analyser = audioCtx.createAnalyser();
     var gain = audioCtx.createGain();
+    var frequencyData;
     var songs = [];
     var shuffled = [];  // Shuffled song indeces
     var playlistIndex = -1;
     var shuffleIndex = 0;
     var shuffle = 0;
     var repeat = 0;
+    var canvasContext = canvas.getContext("2d");
 
-    var songPlaylist = document.querySelector("#song-playlist");
-    var audio = document.querySelector("#audio");
-    var canvas = document.querySelector("#analyserCanvas");
-    var addButton = document.querySelector("#add-button");
-    var playButton = document.querySelector("#play-button");
-    var bwdButton = document.querySelector("#bwd-button");
-    var fwdButton = document.querySelector("#fwd-button");
-    var volume = document.querySelector("#vol-control");
-    var shuffleBtn = document.querySelector("#shuffle-button");
-    var repeatBtn = document.querySelector("#repeat-button");
-    var songButtons;
-    
+    var audioSrc = audioCtx.createMediaElementSource(audio);
 
     // Requests from server the names of all currently stored songs
     //  and saves them in song array
@@ -28,7 +32,7 @@ var nodePlaylist = (function () {
             var xhttp = new XMLHttpRequest();
             xhttp.onreadystatechange = function () {
                 if (this.readyState == 4 && this.status == 200) {
-                    var playlist = JSON.parse(this.response);
+                    let playlist = JSON.parse(this.response);
                     songs = [];
 
                     for (var i = 0; i < playlist.length; i++) {
@@ -66,8 +70,8 @@ var nodePlaylist = (function () {
     // Plays and pauses the song and toggles the play button icon
     //  based on audio state (playing or paused)
     function playPause() {
-        // Check for audio source is included to prevent an interrupt 
-        //  error when there is no audio loaded and user attempts to
+        // Check for audio source to prevent an interrupt error 
+        //  when there is no audio loaded and user attempts to
         //  stream a song after having toggled the play button
         if (audio.paused && audio.src) {
             playButton.classList.remove("fa-play-circle");
@@ -165,6 +169,7 @@ var nodePlaylist = (function () {
     // Set volume to specified value
     function setVolume(value) {
         audio.volume = value/50;
+        gain.gain.setValueAtTime(value/50, audioCtx.currentTime);
     }
 
     // Toggles shuffling
@@ -198,16 +203,41 @@ var nodePlaylist = (function () {
         }
     }
 
+    // Plays the next song and toggles the play button
+    // To be used when a song ends to ensure play button toggle
     function songEnd() {
         nextSong();
         togglePlayIcon();
     }
 
+    // Get the array that has the shuffled playlist indeces
     function getShuffled() {
         return shuffled;
     }
     
+    function updateFreq() {
+        requestAnimationFrame(updateFreq);
+        
+        analyser.getByteFrequencyData(frequencyData);
+        const bufferLength = analyser.frequencyBinCount;
 
+        const barWidth = (canvas.width/bufferLength);
+        let x_coord = 0;
+
+        canvasContext.clearRect(0, 0, canvas.width, canvas.height);
+
+        for (var i = 0; i < bufferLength; i++) {
+            let barHeight = frequencyData[i];
+
+            canvasContext.fillStyle = "#b388ff";
+            canvasContext.fillRect(
+                x_coord,
+                canvas.height - (canvas.height * (barHeight/255)),
+                barWidth,
+                canvas.height * (barHeight/255));
+            x_coord += barWidth + 1;
+        }
+    }
 
     // Bind click events and other interactions to controls
     function bind() {
@@ -223,12 +253,28 @@ var nodePlaylist = (function () {
     }
 
     function init() {
+        // Connect the nodes in audio graph
+        audioSrc.connect(gain);
+        gain.connect(analyser);
+        analyser.connect(audioCtx.destination);
+
+        analyser.fftSize = 128;
+        frequencyData = new Uint8Array(analyser.frequencyBinCount);
+
+        // Bind all buttons and get the playlist
         bind();
         getPlaylist().then(function () {
             createPlaylist();
         });
+
+        // Setup canvas dimensions and update the frequency graph
+        const content = document.getElementById("content");
+        canvas.width = content.offsetWidth;
+        canvas.height = content.offsetHeight;
+        updateFreq();
     }
 
+    
     return {
         play: playButton,
         playPause: playPause,
