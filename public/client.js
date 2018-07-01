@@ -258,7 +258,7 @@ var nodePlaylist = (function () {
         gain.connect(analyser);
         analyser.connect(audioCtx.destination);
 
-        analyser.fftSize = 128;
+        analyser.fftSize = 256;
         frequencyData = new Uint8Array(analyser.frequencyBinCount);
 
         // Bind all buttons and get the playlist
