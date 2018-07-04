@@ -138,34 +138,49 @@ var nodePlaylist = (function () {
             if (shuffleIndex < shuffled.length - 1) {
                 streamSong(songs[shuffled[shuffleIndex]]);
                 console.log ("Shuffle Index: " + shuffleIndex
-                + " --song-> " + shuffled[shuffleIndex]);
+                    + " --song-> " + shuffled[shuffleIndex]);
                 shuffleIndex += 1;
             } else if (shuffleIndex >= shuffled.length - 1 && repeat) {
                 streamSong(songs[shuffled[0]]);
                 shuffleIndex = 0;
                 console.log ("Shuffle Index: " + shuffleIndex
-                + " --song-> " + shuffled[shuffleIndex]);
+                    + " --song-> " + shuffled[shuffleIndex]);
             }     
-
         } else {
             if (playlistIndex < songs.length - 1) {
                 streamSong(songs[playlistIndex+1]);
+                console.log ("Playlist Index: " + (playlistIndex + 1));
             } else if (playlistIndex >= songs.length - 1 && repeat) {
                 streamSong(songs[0]);
+                console.log ("Playlist Index: " + (playlistIndex));
             }
-            console.log ("Playlist Index: " + (playlistIndex + 1));
         }  
     }
 
     // Play the previous song
     // Binded to bwdButton in bind function
     function prevSong() {
-        if (playlistIndex > 0) {
-            streamSong(songs[playlistIndex-1]);
-        } else if (playlistIndex <= 0 && repeat) {
-            streamSong(songs[songs.length-1]);
+        if (shuffle) {
+            if (ShuffleIndex > 0) {
+                streamSong(songs[shuffled[shuffleIndex]]);
+                console.log ("Shuffle Index: " + shuffleIndex
+                    + " --song-> " + shuffled[shuffleIndex]);
+                shuffleIndex -= 1;
+            } else if (shuffleIndex === 0 && repeat) {
+                streamSong(songs[shuffled[shuffled.length - 1]]);
+                shuffleIndex = shuffled.length - 1;
+                console.log ("Shuffle Index: " + shuffleIndex
+                + " --song-> " + shuffled[shuffleIndex]);
+            }
+        } else {
+            if (playlistIndex > 0) {
+                streamSong(songs[playlistIndex-1]);
+                console.log ("Playlist Index: " + (playlistIndex - 1));
+            } else if (playlistIndex <= 0 && repeat) {
+                streamSong(songs[songs.length-1]);
+                console.log ("Playlist Index: " + (playlistIndex));
+            }
         }
-        return ("Playlist Index: " + playlistIndex);
     }
 
     // Set volume to specified value
