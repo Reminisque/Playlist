@@ -18,7 +18,7 @@ var nodePlaylist = (function () {
     var songs = [];
     var shuffled = [];  // Shuffled song indeces
     var playlistIndex = -1;
-    var shuffleIndex = 0;
+    var shuffleIndex = -1;
     var shuffle = 0;
     var repeat = 0;
     var canvasContext = canvas.getContext("2d");
@@ -136,19 +136,21 @@ var nodePlaylist = (function () {
     function nextSong() {
         if (shuffle) {
             if (shuffleIndex < shuffled.length - 1) {
+                shuffleIndex++;
                 streamSong(songs[shuffled[shuffleIndex]]);
-                console.log ("Shuffle Index: " + shuffleIndex
+                console.log (
+                    "Shuffle Index: " + shuffleIndex
                     + " --song-> " + shuffled[shuffleIndex]);
-                shuffleIndex += 1;
             } else if (shuffleIndex >= shuffled.length - 1 && repeat) {
                 streamSong(songs[shuffled[0]]);
                 shuffleIndex = 0;
-                console.log ("Shuffle Index: " + shuffleIndex
+                console.log (
+                    "Shuffle Index: " + shuffleIndex
                     + " --song-> " + shuffled[shuffleIndex]);
             }     
         } else {
             if (playlistIndex < songs.length - 1) {
-                streamSong(songs[playlistIndex+1]);
+                streamSong(songs[playlistIndex + 1]);
                 console.log ("Playlist Index: " + (playlistIndex + 1));
             } else if (playlistIndex >= songs.length - 1 && repeat) {
                 streamSong(songs[0]);
@@ -161,16 +163,19 @@ var nodePlaylist = (function () {
     // Binded to bwdButton in bind function
     function prevSong() {
         if (shuffle) {
-            if (ShuffleIndex > 0) {
+            if (shuffleIndex > 0) {
+                shuffleIndex--;
                 streamSong(songs[shuffled[shuffleIndex]]);
-                console.log ("Shuffle Index: " + shuffleIndex
+                console.log (
+                    "Shuffle Index: " + shuffleIndex
                     + " --song-> " + shuffled[shuffleIndex]);
-                shuffleIndex -= 1;
-            } else if (shuffleIndex === 0 && repeat) {
+ 
+            } else if (shuffleIndex <= 0 && repeat) {
                 streamSong(songs[shuffled[shuffled.length - 1]]);
                 shuffleIndex = shuffled.length - 1;
-                console.log ("Shuffle Index: " + shuffleIndex
-                + " --song-> " + shuffled[shuffleIndex]);
+                console.log (
+                    "Shuffle Index: " + shuffleIndex
+                    + " --song-> " + shuffled[shuffleIndex]);
             }
         } else {
             if (playlistIndex > 0) {
