@@ -111,6 +111,7 @@ var nodePlaylist = (function () {
             });
     }
 
+    // Randomizes/shuffles the elements in given array
     function randomize(arr) {
         for (var i = arr.length - 1; i > 0; i--) {
             var randomIndex = Math.floor(Math.random() * (i + 1));
@@ -121,6 +122,7 @@ var nodePlaylist = (function () {
         return arr;
     }
     
+    // Create the shuffled playlist
     function createShuffle() {
         shuffled = [];
         for (var i = 0; i < songs.length; i++) {
@@ -215,15 +217,17 @@ var nodePlaylist = (function () {
         return shuffled;
     }
     
+    // Updates the frequency graph visualization every frame
     function updateFreq() {
         requestAnimationFrame(updateFreq);
         
+        // Get the frequency data and calculate the bar width
         analyser.getByteFrequencyData(frequencyData);
         const bufferLength = analyser.frequencyBinCount;
-
         const barWidth = (canvas.width/bufferLength);
-        let x_coord = 0;
+        let x_coord = 0;    // Starting x-coordinate
 
+        // Clear the canvas before drawing new bars
         canvasContext.clearRect(0, 0, canvas.width, canvas.height);
 
         for (var i = 0; i < bufferLength; i++) {
@@ -235,6 +239,8 @@ var nodePlaylist = (function () {
                 canvas.height - (canvas.height * (barHeight/255)),
                 barWidth,
                 canvas.height * (barHeight/255));
+
+            // Set new starting x-coordinate for next bar
             x_coord += barWidth + 1;
         }
     }
@@ -276,9 +282,7 @@ var nodePlaylist = (function () {
 
     
     return {
-        play: playButton,
         playPause: playPause,
-        audio: audio,
         streamSong: streamSong,
         prevSong: prevSong,
         nextSong: nextSong,
