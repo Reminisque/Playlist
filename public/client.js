@@ -98,17 +98,29 @@ var nodePlaylist = (function () {
 
     // Stream and play the song inputted by name
     function streamSong(songName) {
-        fetch("song/" + songName)
-            .then(response => response.blob())
-            .then(blob => {
-                audio.src = URL.createObjectURL(blob);
-                if (playlistIndex >= 0) {
-                    songButtons[playlistIndex].classList.remove("active");
-                }
-                playlistIndex = songIndex(songName);
-                songButtons[playlistIndex].classList.add("active");
-                return playPause();
-            });
+        audio.src = "song/" + songName;
+        audio.load();
+
+        // Highlight the song the playlist and remove old highlight
+        if (playlistIndex >= 0) {
+            songButtons[playlistIndex].classList.remove("active");
+        }
+        playlistIndex = songIndex(songName);    // Update index
+        songButtons[playlistIndex].classList.add("active");
+
+        //-----OLD----//
+        // fetch("song/" + songName)
+        //     .then(response => response.blob())
+        //     .then(blob => {
+        //         audio.src = URL.createObjectURL(blob);
+        //         audio.load();
+        //         audio.oncanplay = playPause;
+        //         if (playlistIndex >= 0) {
+        //             songButtons[playlistIndex].classList.remove("active");
+        //         }
+        //         playlistIndex = songIndex(songName);
+        //         songButtons[playlistIndex].classList.add("active");
+        //     });
     }
 
     // Randomizes/shuffles the elements in given array
@@ -271,6 +283,7 @@ var nodePlaylist = (function () {
         shuffleBtn.addEventListener("click", toggleShuffle);
         repeatBtn.addEventListener("click", toggleRepeat);
         audio.addEventListener("ended", songEnd);
+        audio.addEventListener("canplay", playPause);
         playButton.setAttribute("onclick", "nodePlaylist.playPause()");
         bwdButton.setAttribute("onclick", "nodePlaylist.prevSong()");
         fwdButton.setAttribute("onclick", "nodePlaylist.nextSong()");
