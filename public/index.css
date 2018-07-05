@@ -61,7 +61,7 @@ h1 {
 /* The playlist area */
 #song-playlist {
     height: 100%;
-    max-height: 736px;
+    max-height: 766px;
     overflow-y: auto;
 }
 
