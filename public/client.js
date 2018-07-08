@@ -30,6 +30,7 @@ var nodePlaylist = (function () {
     function getPlaylist() {
         return new Promise(function(resolve, reject) {
             var xhttp = new XMLHttpRequest();
+
             xhttp.onreadystatechange = function () {
                 if (this.readyState == 4 && this.status == 200) {
                     let playlist = JSON.parse(this.response);
@@ -42,6 +43,14 @@ var nodePlaylist = (function () {
                     resolve("Got the playlist. Check song array.");
                 }
             };
+
+            xhttp.onerror = function () {
+                reject({
+                    status: this.status,
+                    statusText: this.statusText
+                });
+            };
+
             xhttp.open("GET", "playlist", true);
             xhttp.send();
         });
@@ -298,6 +307,7 @@ var nodePlaylist = (function () {
         analyser.connect(audioCtx.destination);
 
         analyser.fftSize = 256;
+        analyser.smoothingTimeConstant = 0.9;
         frequencyData = new Uint8Array(analyser.frequencyBinCount);
 
         // Bind all buttons and get the playlist
@@ -305,6 +315,8 @@ var nodePlaylist = (function () {
         getPlaylist().then(function () {
             createPlaylist();
         });
+
+        setVolume(volume.value);
 
         // Setup canvas dimensions and update the frequency graph
         const content = document.getElementById("content");
