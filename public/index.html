@@ -1,9 +1,8 @@
 <!DOCTYPE html>
 
 <head>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Playlist</title>
-    <!-- AngularJS CDN -->
-    <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.5.6/angular.min.js"></script>
     <!-- Font Awesome CDN -->
     <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.0.13/css/all.css" integrity="sha384-DNOHZ68U8hZfKXOrtjWvjxusGo9WQnrNx2sqG0tfsghAvtVlRW3tvkXWZh58N9jp" crossorigin="anonymous">
     <!-- Bootstrap 4 CSS -->
@@ -13,16 +12,17 @@
 </head>
 
 <body>
-    <!-- Heading Icon -->
-    <nav class="navbar">
-        <div class="container">
-            <h1 class="mx-auto">
-                <i class="fas fa-headphones fa-2x"></i>
-            </h1>
-        </div>
-    </nav>
+
     <!-- Playlist app -->
     <div class="container app-grid" id="player">
+        <!-- Heading Icon -->
+        <div class="app-grid-navbar">
+            <nav class="navbar">
+                <h1 class="mx-auto">
+                    <i class="fas fa-headphones fa-2x"></i>
+                </h1>                
+            </nav>
+        </div>
         <div class="app-grid-sidebar p-1 text-center rounded-right" id="side">
             <div class="pb-3" id="side-menu">
                 <button type="button" class="btn btn-lg" id="add-button">
@@ -41,7 +41,7 @@
         </div>
         <div class="app-grid-content" id="content">
             <canvas id="analyserCanvas"></canvas>
-            <audio id="audio" controls></audio>
+            <audio id="audio"></audio>
         </div>
         <div class="app-grid-playmenu p-4" id="playmenu">
             <nav class="navbar">

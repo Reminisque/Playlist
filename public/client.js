@@ -3,6 +3,7 @@ var nodePlaylist = (function () {
     const addButton = document.querySelector("#add-button");
     const bwdButton = document.querySelector("#bwd-button");
     const canvas = document.querySelector("#analyserCanvas");
+    const content = document.getElementById("content");
     const fwdButton = document.querySelector("#fwd-button");
     const playButton = document.querySelector("#play-button");
     const repeatBtn = document.querySelector("#repeat-button");
@@ -270,6 +271,8 @@ var nodePlaylist = (function () {
 
         // Clear the canvas before drawing new bars
         canvasContext.clearRect(0, 0, canvas.width, canvas.height);
+        canvas.width = content.offsetWidth;
+        canvas.height = content.offsetHeight;
 
         for (var i = 0; i < bufferLength; i++) {
             let barHeight = frequencyData[i];
@@ -319,9 +322,7 @@ var nodePlaylist = (function () {
         setVolume(volume.value);
 
         // Setup canvas dimensions and update the frequency graph
-        const content = document.getElementById("content");
-        canvas.width = content.offsetWidth;
-        canvas.height = content.offsetHeight;
+
         updateFreq();
     }
 

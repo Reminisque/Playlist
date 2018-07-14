@@ -1,6 +1,7 @@
 html {
     height: 100%;
 }
+
 body {
     height: 100%;
     width: 100%;
@@ -15,16 +16,15 @@ h1 {
 /* The player as a whole, excluding the header */
 
 #player {
-    height: 100%;
-    max-height: 940px;
+    max-height: 100%;
     /* border: solid 2px rgb(77, 53, 134); */
 }
 
 /* The sidebar of the player; made of the playlist and its menu*/
 
 #side {
-    height: 100%;
-    min-width: 366px;
+    max-width: 100%;
+    max-height: 100%;
     color: #b388ff;
     border-right: solid 2px #b388ff;
     word-spacing: 2px;
@@ -61,7 +61,7 @@ h1 {
 /* The playlist area */
 #song-playlist {
     height: 100%;
-    max-height: 766px;
+    max-height: 95%;
     overflow-y: auto;
 }
 
@@ -72,6 +72,7 @@ h1 {
 
 /* The area where current song information is displayed */
 #content {
+    max-height: 100%;
     color: white;
 }
 
@@ -98,12 +99,18 @@ h1 {
 /* CSS GRID for player layout*/
 .app-grid {
     display: grid;
-    grid-template-columns: 1fr 3fr;
-    grid-template-rows: 5fr 1fr;
+    grid-template-columns: 300px 3fr;
+    grid-template-rows: 1fr 80vh 1fr;
     grid-gap: 10px;
-    grid-template-areas: 
+    grid-template-areas:
+    "navbar navbar" 
     "sidebar content" 
-    "playmenu playmenu"
+    "playmenu playmenu";
+    max-height: 100vh;
+}
+
+.app-grid-navbar {
+    grid-area: navbar;
 }
 
 .app-grid-sidebar {
@@ -117,6 +124,8 @@ h1 {
 .app-grid-playmenu {
     grid-area: playmenu;
 }
+
+
 
 /* Misc. */
 
