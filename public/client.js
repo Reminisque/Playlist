@@ -23,6 +23,8 @@ var nodePlaylist = (function () {
     var shuffle = 0;
     var repeat = 0;
     var canvasContext = canvas.getContext("2d");
+    var visRadius = 100;
+    var freqBarLength = 300;
 
     var audioSrc = audioCtx.createMediaElementSource(audio);
 
@@ -258,34 +260,81 @@ var nodePlaylist = (function () {
     function getShuffled() {
         return shuffled;
     }
-    
-    // Updates the frequency graph visualization every frame
-    function updateFreq() {
-        requestAnimationFrame(updateFreq);
-        
-        // Get the frequency data and calculate the bar width
-        analyser.getByteFrequencyData(frequencyData);
-        const bufferLength = analyser.frequencyBinCount;
-        const barWidth = (canvas.width/bufferLength);
-        let x_coord = 0;    // Starting x-coordinate
 
+    function refreshCanvas() {
         // Clear the canvas before drawing new bars
         canvasContext.clearRect(0, 0, canvas.width, canvas.height);
         canvas.width = content.offsetWidth;
         canvas.height = content.offsetHeight;
+        
+    }
+    
+    // Updates the frequency graph visualization every frame
+    function updateFreq() {
+        requestAnimationFrame(updateFreq);
 
-        for (var i = 0; i < bufferLength; i++) {
+        refreshCanvas();
+
+        canvasContext.fillStyle = "#b388ff";
+        canvasContext.strokeStyle = "#b388ff";
+        canvasContext.lineWidth = 2;
+
+        // Circle for circular visualizer
+        // canvasContext.beginPath();
+        // canvasContext.arc(
+        //     canvas.width/2,
+        //     canvas.height/2,
+        //     visRadius,
+        //     0,
+        //     Math.PI*2,
+        //     0
+        // );
+        // canvasContext.stroke();
+        
+        // Get the frequency data and calculate the bar width
+        analyser.getByteFrequencyData(frequencyData);
+        const fft = analyser.fftSize;
+        const bins = analyser.frequencyBinCount;
+        const barWidth = (canvas.width/bins)-1;
+        let x_coord = 0;    // Starting x-coordinate
+
+        for (var i = 0; i < bins; i++) {
+            //===Circle Visualizer===
+            
+            // let barLength = frequencyData[i]/(fft-1) * freqBarLength; 
+
+            // canvasContext.beginPath();
+            // canvasContext.moveTo(
+            //     canvas.width/2 + visRadius * Math.cos(Math.PI * i / bins),
+            //     canvas.height/2 + visRadius * Math.sin(Math.PI * i / bins)
+            // )
+            // canvasContext.lineTo(
+            //     canvas.width/2 + (visRadius + barLength) * Math.cos(Math.PI * i / bins),
+            //     canvas.height/2 + (visRadius + barLength) * Math.sin(Math.PI * i / bins)
+            // )
+
+            // canvasContext.moveTo(
+            //     canvas.width/2 + visRadius * Math.cos(Math.PI + Math.PI * i / bins),
+            //     canvas.height/2 + visRadius * Math.sin(Math.PI + Math.PI * i / bins)
+            // )
+            // canvasContext.lineTo(
+            //     canvas.width/2 + (visRadius + barLength) * Math.cos(Math.PI + Math.PI * i / bins),
+            //     canvas.height/2 + (visRadius + barLength) * Math.sin(Math.PI + Math.PI * i / bins)
+            // )
+
+            // canvasContext.stroke();
+
+            //===Bar Graph Visualizer===
             let barHeight = frequencyData[i];
 
-            canvasContext.fillStyle = "#b388ff";
             canvasContext.fillRect(
                 x_coord,
                 canvas.height - (canvas.height * (barHeight/255)),
                 barWidth,
                 canvas.height * (barHeight/255));
 
-            // Set new starting x-coordinate for next bar
-            x_coord += barWidth + 1;
+            //Set new starting x-coordinate for next bar
+            x_coord += barWidth + 2;
         }
     }
 
