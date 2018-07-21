@@ -16,6 +16,8 @@ var nodePlaylist = (function () {
     var analyser = audioCtx.createAnalyser();
     var gain = audioCtx.createGain();
     var frequencyData;
+    var prevfrequencyData;
+    var prevAmplitude;
     var songs = [];
     var shuffled = [];  // Shuffled song indeces
     var playlistIndex = -1;
@@ -175,7 +177,7 @@ var nodePlaylist = (function () {
         } else {
             if (playlistIndex < songs.length - 1) {
                 streamSong(songs[playlistIndex + 1]);
-                console.log ("Playlist Index: " + (playlistIndex + 1));
+                console.log ("Playlist Index: " + (playlistIndex));
             } else if (playlistIndex >= songs.length - 1 && repeat) {
                 streamSong(songs[0]);
                 console.log ("Playlist Index: " + (playlistIndex));
@@ -204,7 +206,7 @@ var nodePlaylist = (function () {
         } else {
             if (playlistIndex > 0) {
                 streamSong(songs[playlistIndex-1]);
-                console.log ("Playlist Index: " + (playlistIndex - 1));
+                console.log ("Playlist Index: " + (playlistIndex));
             } else if (playlistIndex <= 0 && repeat) {
                 streamSong(songs[songs.length-1]);
                 console.log ("Playlist Index: " + (playlistIndex));
@@ -269,73 +271,114 @@ var nodePlaylist = (function () {
         
     }
     
-    // Updates the frequency graph visualization every frame
-    function updateFreq() {
-        requestAnimationFrame(updateFreq);
-
-        refreshCanvas();
-
-        canvasContext.fillStyle = "#b388ff";
+    // Draw circular visualization
+    function drawCirVis() {
+        const bins = analyser.frequencyBinCount;
         canvasContext.strokeStyle = "#b388ff";
         canvasContext.lineWidth = 2;
 
-        // Circle for circular visualizer
-        // canvasContext.beginPath();
-        // canvasContext.arc(
-        //     canvas.width/2,
-        //     canvas.height/2,
-        //     visRadius,
-        //     0,
-        //     Math.PI*2,
-        //     0
-        // );
-        // canvasContext.stroke();
-        
-        // Get the frequency data and calculate the bar width
-        analyser.getByteFrequencyData(frequencyData);
-        const fft = analyser.fftSize;
-        const bins = analyser.frequencyBinCount;
-        const barWidth = (canvas.width/bins)-1;
-        let x_coord = 0;    // Starting x-coordinate
+        // Circle at center that bars with will be draw around
+        canvasContext.beginPath();
+        canvasContext.arc(
+            canvas.width/2,     // center x-coord
+            canvas.height/2,    // center y-coord
+            visRadius,          // radius
+            0,                  // start angle (radians)
+            Math.PI*2           // end angle (radians)
+        );
+        canvasContext.stroke();
 
+        // Draw bars
         for (var i = 0; i < bins; i++) {
-            //===Circle Visualizer===
-            
-            // let barLength = frequencyData[i]/(fft-1) * freqBarLength; 
+            let barLength = frequencyData[i]/(255) * freqBarLength; 
 
-            // canvasContext.beginPath();
-            // canvasContext.moveTo(
-            //     canvas.width/2 + visRadius * Math.cos(Math.PI * i / bins),
-            //     canvas.height/2 + visRadius * Math.sin(Math.PI * i / bins)
-            // )
-            // canvasContext.lineTo(
-            //     canvas.width/2 + (visRadius + barLength) * Math.cos(Math.PI * i / bins),
-            //     canvas.height/2 + (visRadius + barLength) * Math.sin(Math.PI * i / bins)
-            // )
+            canvasContext.beginPath();
+            canvasContext.moveTo(
+                canvas.width/2 + visRadius * Math.cos(Math.PI * i / bins),
+                canvas.height/2 + visRadius * Math.sin(Math.PI * i / bins)
+            )
+            canvasContext.lineTo(
+                canvas.width/2 + (visRadius + barLength) * Math.cos(Math.PI * i / bins),
+                canvas.height/2 + (visRadius + barLength) * Math.sin(Math.PI * i / bins)
+            )
 
-            // canvasContext.moveTo(
-            //     canvas.width/2 + visRadius * Math.cos(Math.PI + Math.PI * i / bins),
-            //     canvas.height/2 + visRadius * Math.sin(Math.PI + Math.PI * i / bins)
-            // )
-            // canvasContext.lineTo(
-            //     canvas.width/2 + (visRadius + barLength) * Math.cos(Math.PI + Math.PI * i / bins),
-            //     canvas.height/2 + (visRadius + barLength) * Math.sin(Math.PI + Math.PI * i / bins)
-            // )
+            canvasContext.moveTo(
+                canvas.width/2 + visRadius * Math.cos(Math.PI + Math.PI * i / bins),
+                canvas.height/2 + visRadius * Math.sin(Math.PI + Math.PI * i / bins)
+            )
+            canvasContext.lineTo(
+                canvas.width/2 + (visRadius + barLength) * Math.cos(Math.PI + Math.PI * i / bins),
+                canvas.height/2 + (visRadius + barLength) * Math.sin(Math.PI + Math.PI * i / bins)
+            )
 
-            // canvasContext.stroke();
+            canvasContext.stroke();
+        }
+        
+    }
+    
+    function drawBarVis() {
+        canvasContext.fillStyle = "#b388ff";
 
+        const bins = analyser.frequencyBinCount;
+        const barWidth = (2*canvas.width/bins)-1;
+        let x_coord = 0;    // Starting x-coordinate
+        let average = 0;
+        for (var i = 0; i < bins; i++) {
+            average += frequencyData[i];
+        }
+        average /= bins;
+        
+        // Draw bars
+        for (var i = 0; i < bins; i++) {
             //===Bar Graph Visualizer===
-            let barHeight = frequencyData[i];
+            const smoothing = analyser.smoothingTimeConstant;
+            // let barHeight = smoothing * prevAmplitude[i] + 
+            //             (1-smoothing) * frequencyData[i];
 
+            let barHeight = frequencyData[i];
+        
             canvasContext.fillRect(
                 x_coord,
                 canvas.height - (canvas.height * (barHeight/255)),
                 barWidth,
-                canvas.height * (barHeight/255));
-
+                canvas.height * (barHeight/255)
+            );
             //Set new starting x-coordinate for next bar
-            x_coord += barWidth + 2;
+            x_coord += barWidth + 1;
         }
+
+    }
+
+    // Updates the frequency graph visualization every frame
+    function updateVis() {
+        requestAnimationFrame(updateVis);
+
+        refreshCanvas();
+
+        // Get the frequency data and calculate the bar width
+        prevfrequencyData = frequencyData.slice();
+        analyser.getByteFrequencyData(frequencyData);
+        // console.log(frequencyData);
+        //drawCirVis();
+        drawBarVis();
+
+    }
+
+    function freqData() {
+        return frequencyData;
+    }
+
+    function prevFreqData() {
+        return prevfrequencyData;
+    }
+
+    function prevAmplitude() {
+        return prevAmplitude;
+    }
+
+    function data() {
+        console.log(freqData());
+        console.log(prevFreqData());
     }
 
     // Bind click events and other interactions to controls
@@ -358,9 +401,11 @@ var nodePlaylist = (function () {
         gain.connect(analyser);
         analyser.connect(audioCtx.destination);
 
-        analyser.fftSize = 256;
-        analyser.smoothingTimeConstant = 0.9;
+        analyser.fftSize = 1024;
+        analyser.smoothingTimeConstant = 0.91;
         frequencyData = new Uint8Array(analyser.frequencyBinCount);
+        prevfrequencyData = new Uint8Array(analyser.frequencyBinCount);
+        prevAmplitude = new Array(analyser.frequencyBinCount).fill(0);
 
         // Bind all buttons and get the playlist
         bind();
@@ -372,9 +417,8 @@ var nodePlaylist = (function () {
 
         // Setup canvas dimensions and update the frequency graph
 
-        updateFreq();
+        updateVis();
     }
-
     
     return {
         playPause: playPause,
@@ -387,6 +431,7 @@ var nodePlaylist = (function () {
         shuffleIndex: shuffleIndex,
         repeat: toggleRepeat,
         shuffled: getShuffled,
+        freq: data,
         init: init
     }
 })();
