@@ -43,6 +43,7 @@ h1 {
 
 #side .btn:hover {
     cursor: pointer;
+    color: white;
 }
 
 /* Side button active toggle state */
