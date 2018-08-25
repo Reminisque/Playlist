@@ -10,23 +10,23 @@ var nodePlaylist = (function () {
     const shuffleBtn = document.querySelector("#shuffle-button");
     const songPlaylist = document.querySelector("#song-playlist");
     const volume = document.querySelector("#vol-control");
-    var songButtons;
+    let songButtons;
 
-    var audioCtx = new AudioContext();
-    var analyser = audioCtx.createAnalyser();
-    var gain = audioCtx.createGain();
-    var frequencyData;
-    var songs = [];
-    var shuffled = [];  // Shuffled song indeces
-    var playlistIndex = -1;
-    var shuffleIndex = -1;
-    var shuffle = 0;
-    var repeat = 0;
-    var canvasContext = canvas.getContext("2d");
-    var visRadius = 100;
-    var freqBarLength = 300;
+    let audioCtx = new AudioContext();
+    let analyser = audioCtx.createAnalyser();
+    let gain = audioCtx.createGain();
+    let frequencyData;
+    let songs = [];
+    let shuffled = [];  // Shuffled song indeces
+    let playlistIndex = -1;
+    let shuffleIndex = -1;
+    let shuffle = 0;
+    let repeat = 0;
+    let canvasContext = canvas.getContext("2d");
+    let visRadius = 100;
+    let freqBarLength = 300;
 
-    var audioSrc = audioCtx.createMediaElementSource(audio);
+    let audioSrc = audioCtx.createMediaElementSource(audio);
 
     // Requests from server the names of all currently stored songs
     //  and saves them in song array
@@ -214,8 +214,8 @@ var nodePlaylist = (function () {
 
     // Set volume to specified value
     function setVolume(value) {
-        audio.volume = value/50;
-        gain.gain.setValueAtTime(value/50, audioCtx.currentTime);
+        audio.volume = value/60;
+        gain.gain.setValueAtTime(value/60, audioCtx.currentTime);
     }
 
     // Toggles shuffling
@@ -271,10 +271,10 @@ var nodePlaylist = (function () {
     
     // Draw circular visualization
     function drawCirVis() {
-        const bins = analyser.frequencyBinCount;
+        const bins = 150;
 
         canvasContext.strokeStyle = "#b388ff";
-        canvasContext.lineWidth = 2;
+        canvasContext.lineWidth = 3;
 
         // Circle at center that bars with will be draw around
         canvasContext.beginPath();
@@ -289,9 +289,13 @@ var nodePlaylist = (function () {
 
         // Draw bars
         for (var i = 0; i < bins; i++) {
-            let barLength = Math.pow(frequencyData[i], 2);
+            let barLength = frequencyData[i]/255;
 
-            barLength /= Math.pow(255, 2);
+            for(var j = 0; j < 2; j++) {
+                barLength = Math.log2(barLength + 1);
+            }
+
+            barLength = Math.pow(barLength * 2, 4) / 16;
 
             barLength *= freqBarLength;
 
@@ -302,33 +306,54 @@ var nodePlaylist = (function () {
             canvasContext.beginPath();
 
             // === Full Circle ===
+            canvasContext.moveTo(
+                canvas.width/2 + visRadius * Math.cos(Math.PI * 2 * i / bins),
+                canvas.height/2 + visRadius * Math.sin( Math.PI * 2 *i / bins)
+            )
+            canvasContext.lineTo(
+                canvas.width/2 + (visRadius + barLength) * Math.cos(Math.PI * 2 * i / bins),
+                canvas.height/2 + (visRadius + barLength) * Math.sin(Math.PI * 2 * i / bins)
+            )
+            
+            // === Opposite Half Circles ===
             // canvasContext.moveTo(
-            //     canvas.width/2 + visRadius * Math.cos(Math.PI * 2 * i / bins),
-            //     canvas.height/2 + visRadius * Math.sin( Math.PI * 2 *i / bins)
+            //     canvas.width/2 + visRadius * Math.cos(Math.PI * i / bins),
+            //     canvas.height/2 + visRadius * Math.sin(Math.PI * i / bins)
             // )
             // canvasContext.lineTo(
-            //     canvas.width/2 + (visRadius + barLength) * Math.cos(Math.PI * 2 * i / bins),
-            //     canvas.height/2 + (visRadius + barLength) * Math.sin(Math.PI * 2 * i / bins)
+            //     canvas.width/2 + (visRadius + barLength) * Math.cos(Math.PI * i / bins),
+            //     canvas.height/2 + (visRadius + barLength) * Math.sin(Math.PI * i / bins)
             // )
-            // 
-            // === Half Circles ===
-            canvasContext.moveTo(
-                canvas.width/2 + visRadius * Math.cos(Math.PI * i / bins),
-                canvas.height/2 + visRadius * Math.sin(Math.PI * i / bins)
-            )
-            canvasContext.lineTo(
-                canvas.width/2 + (visRadius + barLength) * Math.cos(Math.PI * i / bins),
-                canvas.height/2 + (visRadius + barLength) * Math.sin(Math.PI * i / bins)
-            )
 
-            canvasContext.moveTo(
-                canvas.width/2 + visRadius * Math.cos(Math.PI + Math.PI * i / bins),
-                canvas.height/2 + visRadius * Math.sin(Math.PI + Math.PI * i / bins)
-            )
-            canvasContext.lineTo(
-                canvas.width/2 + (visRadius + barLength) * Math.cos(Math.PI + Math.PI * i / bins),
-                canvas.height/2 + (visRadius + barLength) * Math.sin(Math.PI + Math.PI * i / bins)
-            )
+            // canvasContext.moveTo(
+            //     canvas.width/2 + visRadius * Math.cos(Math.PI + Math.PI * i / bins),
+            //     canvas.height/2 + visRadius * Math.sin(Math.PI + Math.PI * i / bins)
+            // )
+            // canvasContext.lineTo(
+            //     canvas.width/2 + (visRadius + barLength) * Math.cos(Math.PI + Math.PI * i / bins),
+            //     canvas.height/2 + (visRadius + barLength) * Math.sin(Math.PI + Math.PI * i / bins)
+            // )
+
+            // === Top to Bottom ===
+            // canvasContext.moveTo(
+            //     canvas.width/2 + visRadius * Math.cos(Math.PI * (i) / bins - (0.5 * Math.PI)),
+            //     canvas.height/2 + visRadius * Math.sin(Math.PI * (i) / bins - (0.5 * Math.PI))
+            // );
+
+            // canvasContext.lineTo(
+            //     canvas.width/2 + (visRadius + barLength) * Math.cos(Math.PI * (i) / bins - (0.5 * Math.PI)),
+            //     canvas.height/2 + (visRadius + barLength) * Math.sin(Math.PI * (i) / bins - (0.5 * Math.PI)) 
+            // )
+
+            // canvasContext.moveTo(
+            //     canvas.width/2 + visRadius * Math.cos(Math.PI * (bins - i) / bins + (0.5 * Math.PI)),
+            //     canvas.height/2 + visRadius * Math.sin(Math.PI * (bins - i) / bins + (0.5 * Math.PI))
+            // );
+
+            // canvasContext.lineTo(
+            //     canvas.width/2 + (visRadius + barLength) * Math.cos(Math.PI * (bins - i) / bins + (0.5 * Math.PI)),
+            //     canvas.height/2 + (visRadius + barLength) * Math.sin(Math.PI * (bins - i) / bins + (0.5 * Math.PI)) 
+            // )
 
             canvasContext.stroke();
         }
@@ -338,14 +363,22 @@ var nodePlaylist = (function () {
     function drawBarVis() {
         canvasContext.fillStyle = "#b388ff";
 
-        const bins = analyser.frequencyBinCount;
+        const bins = 256;
         const barWidth = (2*canvas.width/bins)-1;
         let x_coord = 0;    // Starting x-coordinate
 
         // Draw bars
         for (var i = 0; i < bins; i++) {
             // === Bar Graph Visualizer ===
-            let barHeight = Math.pow(frequencyData[i], 2);
+            let barHeight = frequencyData[i]/255;
+
+            let barWidth2 = 1 + (9 - Math.log2(2*i+1));
+
+            for(var j = 0; j < 3; j++) {
+                barHeight = Math.log2(barHeight + 1);
+            }
+
+            barHeight = Math.pow(barHeight * 2, 4) / 16;
 
             if (i === 0) {
                 console.log(barHeight);
@@ -353,12 +386,12 @@ var nodePlaylist = (function () {
 
             canvasContext.fillRect(
                 x_coord,
-                canvas.height - (canvas.height * (barHeight/Math.pow(255 ,2))),
-                barWidth,
-                canvas.height * (barHeight/Math.pow(255 ,2))
+                canvas.height - (canvas.height * barHeight),
+                barWidth2,
+                canvas.height * barHeight
             );
             //Set new starting x-coordinate for next bar
-            x_coord += barWidth + 1;
+            x_coord += barWidth2 + 1;
         }
 
     }
@@ -408,7 +441,7 @@ var nodePlaylist = (function () {
 
 
         analyser.fftSize = 1024;
-        analyser.smoothingTimeConstant = 0.86;
+        analyser.smoothingTimeConstant = 0.9;
 
 
         frequencyData = new Uint8Array(analyser.frequencyBinCount);

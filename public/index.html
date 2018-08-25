@@ -6,7 +6,7 @@
     <!-- Font Awesome CDN -->
     <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.0.13/css/all.css" integrity="sha384-DNOHZ68U8hZfKXOrtjWvjxusGo9WQnrNx2sqG0tfsghAvtVlRW3tvkXWZh58N9jp" crossorigin="anonymous">
     <!-- Bootstrap 4 CSS -->
-    <link href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm"
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm"
         crossorigin="anonymous">
     <link rel="stylesheet" href="index.css">
 </head>
@@ -18,7 +18,7 @@
         <!-- Heading Icon -->
         <div class="app-grid-navbar">
             <nav class="navbar">
-                <h1 class="mx-auto ">
+                <h1 class="mx-auto">
                     <i class="fas fa-headphones fa-2x"></i>
                 </h1>                
             </nav>
@@ -43,20 +43,18 @@
             <canvas id="analyserCanvas"></canvas>
             <audio id="audio"></audio>
         </div>
-        <div class="app-grid-playmenu p-4" id="playmenu">
+        <div class="app-grid-playmenu" id="playmenu">
             <nav class="navbar">
-                <div class="mx-auto">
-                    
-                </div>
-                <div class="iconClick mx-auto ">
-                    <i class="fas fa-backward fa-4x" id="bwd-button"></i>
-                    <i class="fas fa-play-circle fa-4x" id="play-button"></i>
-                    <i class="fas fa-forward fa-4x" id="fwd-button"></i>
+                <div class="iconClick mx-auto">
+                        <i class="fas fa-backward fa-4x" id="bwd-button"></i>
+                        <i class="fas fa-play-circle fa-4x" id="play-button"></i>
+                        <i class="fas fa-forward fa-4x" id="fwd-button"></i>
+
                 </div>
                 <div class="ml-auto">
-                    <i class="fas fa-volume-up fa-2x mr-2"></i>
-                    <input type="range" id="vol-control" min="0" max="50" step="1" value="50"></input>
-                </div>
+                        <i class="fas fa-volume-up fa-2x mr-2"></i>
+                        <input type="range" id="vol-control" min="0" max="50" step="1" value="50"></input>
+                    </div>
             </nav>
         </div>
     </div>

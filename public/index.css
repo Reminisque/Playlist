@@ -17,6 +17,7 @@ h1 {
 
 #player {
     max-height: 100%;
+    color: white;
     /* border: solid 2px rgb(77, 53, 134); */
 }
 
@@ -43,7 +44,7 @@ h1 {
 
 #side .btn:hover {
     cursor: pointer;
-    color: white;
+    color: white;   
 }
 
 /* Side button active toggle state */
@@ -74,12 +75,6 @@ h1 {
 /* The area where current song information is displayed */
 #content {
     max-height: 100%;
-    color: white;
-}
-
-/* The player menu area */
-#playmenu {
-    color: white;
 }
 
 /* The volume slider */
@@ -126,8 +121,21 @@ h1 {
     grid-area: playmenu;
 }
 
-
-
+@media screen and (max-width: 480px) {
+    .app-grid {
+        grid-template-columns: 100vw;
+        grid-template-rows: 1fr 40vh 1fr 40vh;
+        grid-template-areas:
+        "navbar"
+        "content"
+        "playmenu"
+        "sidebar"
+    }
+    
+    #side {
+        border-right: none;
+    }
+}
 /* Misc. */
 
 /* Make icon appear clickable without need for button; Use alongside onclick attribute */
