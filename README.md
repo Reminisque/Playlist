@@ -1,6 +1,6 @@
 # Node Playlist
 
-A simple node.js audio player that streams and plays audio files stormed on localhost
+A simple node.js audio player that streams and plays audio files stored on local storage
 
 Default port is 5000
 
