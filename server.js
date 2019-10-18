@@ -35,7 +35,12 @@ app.get("/playlist", function (req, res) {
 app.get("/song/:songId", function (req, res) {
     songPath = path.join(__dirname, "/playlist", req.params.songId);
     fs.createReadStream(songPath).pipe(res);
-})
+});
+
+// Upload song
+app.get("/upload", function (req, res) {
+    res.send("UPLOADED");
+});
 
 app.listen(port, function () {
     console.log("Connected to port 5000. Welcome to Playlist!");
