@@ -6,11 +6,18 @@ body {
     height: 100%;
     width: 100%;
     background: #1f2433;
+    font-family: 'Yanone Kaffeesatz', sans-serif;
 }
 
 h1 {
     text-align: center;
     color: #b388ff;
+    font-family: 'Satisfy'
+}
+
+canvas {
+    height: 100%;
+    width: 100%;
 }
 
 /* The player as a whole, excluding the header */
@@ -31,19 +38,22 @@ h1 {
     word-spacing: 2px;
 }
 
+
 #side .btn {
     border: none;
     background: none;
     color: #b388ff;
-    padding: 0px 30px;
-    border-radius: 0px;
+    padding: 4px 30px;
+    border-radius: 0;
+}
+
+#side .btn, #side .upload-btn label {
     -webkit-transition-duration: 0.6s;
     -moz-animation-duration: 0.6s;
     transition-duration: 0.6s;
 }
 
-#side .btn:hover {
-    cursor: pointer;
+#side .btn:hover, #side .upload-btn label:hover{
     color: white;   
 }
 
@@ -54,11 +64,35 @@ h1 {
 }
 
 /* Animate side button when clicked */
-#side .btn:active {
+#side .btn:active, #side .upload-btn:active {
     transition-duration: 5ms;
-    transform: translateY(1px);
-    color: white;
+    transform: translateY(2px);
 }
+
+/* Upload song button */
+#side .upload-btn {
+    padding: 5px 0;
+    padding-right: 20px;
+    display: inline-block;
+    position: relative;
+    overflow: hidden;
+    vertical-align: middle;
+}
+
+#side .upload-btn input[type=file] {
+    position: absolute;
+    width: 0.1px;
+    height: 0.1px;
+    top: 0;
+    left: 0;
+    opacity: 0;
+}
+
+#side .upload-btn label {
+    margin: 0;
+    cursor: pointer;
+}
+
 
 /* The playlist area */
 #song-playlist {
@@ -67,9 +101,12 @@ h1 {
     overflow-y: auto;
 }
 
-#song-playlist .btn {
+#song-playlist .song {
     width: 100%;
     margin-top: 10px;
+    line-height: 2;
+    font-size: 1.3rem;
+    padding: 4px 24px;
 }
 
 /* The area where current song information is displayed */
@@ -95,14 +132,14 @@ h1 {
 /* CSS GRID for player layout*/
 .app-grid {
     display: grid;
-    grid-template-columns: 300px 3fr;
-    grid-template-rows: 1fr 80vh 1fr;
+    margin: 0 100px;
+    grid-template-columns: 280px auto 280px;
+    grid-template-rows: 88px 80vh;
     grid-gap: 10px;
     grid-template-areas:
-    "navbar navbar" 
-    "sidebar content" 
-    "playmenu playmenu";
-    max-height: 100vh;
+    "navbar navbar navbar" 
+    "sidebar content playmenu";
+
 }
 
 .app-grid-navbar {
@@ -114,6 +151,8 @@ h1 {
 }
 
 .app-grid-content {
+    display: flexbox;
+    flex-direction: row;
     grid-area: content;
 }
 
@@ -121,21 +160,24 @@ h1 {
     grid-area: playmenu;
 }
 
-@media screen and (max-width: 480px) {
+@media screen and (max-width: 900px) {
     .app-grid {
-        grid-template-columns: 100vw;
-        grid-template-rows: 1fr 40vh 1fr 40vh;
+        margin: 0;
+        padding: 0 10px;
+        grid-template-columns: 100%;
+        grid-template-rows: 88px 60vh 60px 1fr;
         grid-template-areas:
         "navbar"
         "content"
         "playmenu"
-        "sidebar"
+        "sidebar";
     }
     
     #side {
         border-right: none;
     }
 }
+
 /* Misc. */
 
 /* Make icon appear clickable without need for button; Use alongside onclick attribute */
@@ -154,3 +196,4 @@ h1 {
     left: 50%;
     transform: translateX(-50%);
 }
+

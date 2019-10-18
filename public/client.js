@@ -1,16 +1,19 @@
-var nodePlaylist = (function () {
+var nodePlaylist = (function() {
     const audio = document.querySelector("#audio");
-    const addButton = document.querySelector("#add-button");
     const bwdButton = document.querySelector("#bwd-button");
     const canvas = document.querySelector("#analyserCanvas");
-    const content = document.getElementById("content");
     const fwdButton = document.querySelector("#fwd-button");
     const playButton = document.querySelector("#play-button");
     const repeatBtn = document.querySelector("#repeat-button");
     const shuffleBtn = document.querySelector("#shuffle-button");
     const songPlaylist = document.querySelector("#song-playlist");
+    const upload = document.querySelector("#upload-song");
     const volume = document.querySelector("#vol-control");
+
+    const content = document.getElementById("content");
+    
     let songButtons;
+    let requestID;
 
     let audioCtx = new AudioContext();
     let analyser = audioCtx.createAnalyser();
@@ -28,13 +31,22 @@ var nodePlaylist = (function () {
 
     let audioSrc = audioCtx.createMediaElementSource(audio);
 
+
+    function uploadSong() {
+        console.log("uploadSong WORK IN PROGRESS");
+        // return new Promise(function(resolve, reject) {
+        //    var xhttp = new XMLHttpRequest(); 
+           
+        // });
+    }
+
     // Requests from server the names of all currently stored songs
     //  and saves them in song array
     function getPlaylist() {
         return new Promise(function(resolve, reject) {
             var xhttp = new XMLHttpRequest();
 
-            xhttp.onreadystatechange = function () {
+            xhttp.onreadystatechange = function() {
                 if (this.readyState == 4 && this.status == 200) {
                     let playlist = JSON.parse(this.response);
                     songs = [];
@@ -47,7 +59,7 @@ var nodePlaylist = (function () {
                 }
             };
 
-            xhttp.onerror = function () {
+            xhttp.onerror = function() {
                 reject({
                     status: this.status,
                     statusText: this.statusText
@@ -80,16 +92,20 @@ var nodePlaylist = (function () {
     }
 
     // Plays and pauses the song and toggles the play button icon
-    //  based on audio state (playing or paused)
+    // based on audio state (playing or paused)
     function playPause() {
         // Check for audio source to prevent an interrupt error 
         //  when there is no audio loaded and user attempts to
         //  stream a song after having toggled the play button
+        if (requestID != null) {
+            cancelAnimationFrame(requestID);
+            requestID = null;
+        }
         if (audio.paused && audio.src) {
             playButton.classList.remove("fa-play-circle");
             playButton.classList.add("fa-pause-circle");
+            updateVis();
             return audio.play();
-
         } else {
             playButton.classList.remove("fa-pause-circle");
             playButton.classList.add("fa-play-circle");
@@ -252,6 +268,8 @@ var nodePlaylist = (function () {
     // Plays the next song and toggles the play button
     // To be used when a song ends to ensure play button toggle
     function songEnd() {
+        cancelAnimationFrame(requestID);
+        requestID = null;
         nextSong();
         togglePlayIcon();
     }
@@ -266,12 +284,11 @@ var nodePlaylist = (function () {
         canvasContext.clearRect(0, 0, canvas.width, canvas.height);
         canvas.width = content.offsetWidth;
         canvas.height = content.offsetHeight;
-        
     }
     
     // Draw circular visualization
     function drawCirVis() {
-        const bins = 150;
+        const bins = 180;
 
         canvasContext.strokeStyle = "#b388ff";
         canvasContext.lineWidth = 3;
@@ -289,33 +306,23 @@ var nodePlaylist = (function () {
 
         // Draw bars
         for (var i = 0; i < bins; i++) {
-            let barLength = frequencyData[i]/255;
-
-            for(var j = 0; j < 2; j++) {
-                barLength = Math.log2(barLength + 1);
-            }
-
-            barLength = Math.pow(barLength * 2, 4) / 16;
+            let barLength = Math.pow(frequencyData[i + Math.ceil(i / 90)], 3) / Math.pow(255, 3);
 
             barLength *= freqBarLength;
-
-            if (i === 0) {
-                console.log(barLength);
-            }
 
             canvasContext.beginPath();
 
             // === Full Circle ===
-            canvasContext.moveTo(
-                canvas.width/2 + visRadius * Math.cos(Math.PI * 2 * i / bins),
-                canvas.height/2 + visRadius * Math.sin( Math.PI * 2 *i / bins)
-            )
-            canvasContext.lineTo(
-                canvas.width/2 + (visRadius + barLength) * Math.cos(Math.PI * 2 * i / bins),
-                canvas.height/2 + (visRadius + barLength) * Math.sin(Math.PI * 2 * i / bins)
-            )
+            // canvasContext.moveTo(
+            //     canvas.width/2 + visRadius * Math.cos(Math.PI * 2 * i / bins),
+            //     canvas.height/2 + visRadius * Math.sin( Math.PI * 2 *i / bins)
+            // )
+            // canvasContext.lineTo(
+            //     canvas.width/2 + (visRadius + barLength) * Math.cos(Math.PI * 2 * i / bins),
+            //     canvas.height/2 + (visRadius + barLength) * Math.sin(Math.PI * 2 * i / bins)
+            // )
             
-            // === Opposite Half Circles ===
+            // === Opposite Horizontal Halves ===
             // canvasContext.moveTo(
             //     canvas.width/2 + visRadius * Math.cos(Math.PI * i / bins),
             //     canvas.height/2 + visRadius * Math.sin(Math.PI * i / bins)
@@ -334,27 +341,30 @@ var nodePlaylist = (function () {
             //     canvas.height/2 + (visRadius + barLength) * Math.sin(Math.PI + Math.PI * i / bins)
             // )
 
-            // === Top to Bottom ===
-            // canvasContext.moveTo(
-            //     canvas.width/2 + visRadius * Math.cos(Math.PI * (i) / bins - (0.5 * Math.PI)),
-            //     canvas.height/2 + visRadius * Math.sin(Math.PI * (i) / bins - (0.5 * Math.PI))
-            // );
+            // === Vertical Mirrored Halves ===
+            let halfPi = Math.PI * 0.5
 
-            // canvasContext.lineTo(
-            //     canvas.width/2 + (visRadius + barLength) * Math.cos(Math.PI * (i) / bins - (0.5 * Math.PI)),
-            //     canvas.height/2 + (visRadius + barLength) * Math.sin(Math.PI * (i) / bins - (0.5 * Math.PI)) 
-            // )
+            canvasContext.moveTo(
+                canvas.width/2 + visRadius * Math.cos(Math.PI * (i) / bins - halfPi),
+                canvas.height/2 + visRadius * Math.sin(Math.PI * (i) / bins - halfPi)
+            );
 
-            // canvasContext.moveTo(
-            //     canvas.width/2 + visRadius * Math.cos(Math.PI * (bins - i) / bins + (0.5 * Math.PI)),
-            //     canvas.height/2 + visRadius * Math.sin(Math.PI * (bins - i) / bins + (0.5 * Math.PI))
-            // );
+            canvasContext.lineTo(
+                canvas.width/2 + (visRadius + barLength) * Math.cos(Math.PI * (i) / bins - halfPi),
+                canvas.height/2 + (visRadius + barLength) * Math.sin(Math.PI * (i) / bins - halfPi) 
+            )
 
-            // canvasContext.lineTo(
-            //     canvas.width/2 + (visRadius + barLength) * Math.cos(Math.PI * (bins - i) / bins + (0.5 * Math.PI)),
-            //     canvas.height/2 + (visRadius + barLength) * Math.sin(Math.PI * (bins - i) / bins + (0.5 * Math.PI)) 
-            // )
+            canvasContext.moveTo(
+                canvas.width/2 + visRadius * Math.cos(Math.PI * (bins - i - 1) / bins + halfPi),
+                canvas.height/2 + visRadius * Math.sin(Math.PI * (bins - i - 1) / bins + halfPi)
+            );
 
+            canvasContext.lineTo(
+                canvas.width/2 + (visRadius + barLength) * Math.cos(Math.PI * (bins - i - 1) / bins + halfPi),
+                canvas.height/2 + (visRadius + barLength) * Math.sin(Math.PI * (bins - i - 1) / bins + halfPi) 
+            )
+
+            // Draw
             canvasContext.stroke();
         }
         
@@ -363,51 +373,39 @@ var nodePlaylist = (function () {
     function drawBarVis() {
         canvasContext.fillStyle = "#b388ff";
 
-        const bins = 256;
-        const barWidth = (2*canvas.width/bins)-1;
+        const bins = canvas.width / 4;
+        const barWidth = canvas.width / bins;
         let x_coord = 0;    // Starting x-coordinate
 
         // Draw bars
         for (var i = 0; i < bins; i++) {
             // === Bar Graph Visualizer ===
-            let barHeight = frequencyData[i]/255;
-
-            let barWidth2 = 1 + (9 - Math.log2(2*i+1));
-
-            for(var j = 0; j < 3; j++) {
-                barHeight = Math.log2(barHeight + 1);
-            }
-
-            barHeight = Math.pow(barHeight * 2, 4) / 16;
-
-            if (i === 0) {
-                console.log(barHeight);
-            }
+            let barLength = Math.pow(frequencyData[i + Math.ceil(i / 90)], 3) / Math.pow(255, 3);
 
             canvasContext.fillRect(
                 x_coord,
-                canvas.height - (canvas.height * barHeight),
-                barWidth2,
-                canvas.height * barHeight
+                canvas.height -     ((canvas.height-1) * barLength),
+                barWidth,
+                canvas.height * barLength
             );
+
             //Set new starting x-coordinate for next bar
-            x_coord += barWidth2 + 1;
+            x_coord += barWidth + 1;
         }
 
     }
 
     // Updates the frequency graph visualization every frame
     function updateVis() {
-        requestAnimationFrame(updateVis);
-
         refreshCanvas();
-
+        
         // Get the frequency data and calculate the bar width
-        prevfrequencyData = frequencyData.slice();
         analyser.getByteFrequencyData(frequencyData);
         // console.log(frequencyData);
         // drawCirVis();
         drawBarVis();
+
+        requestID = requestAnimationFrame(updateVis);
 
     }
 
@@ -421,16 +419,37 @@ var nodePlaylist = (function () {
 
     // Bind click events and other interactions to controls
     function bind() {
-        addButton.addEventListener("click", getPlaylist);
-        shuffleBtn.addEventListener("click", toggleShuffle);
-        repeatBtn.addEventListener("click", toggleRepeat);
+        // Audio tag bindings
         audio.addEventListener("ended", songEnd);
         audio.addEventListener("canplay", playPause);
-        playButton.setAttribute("onclick", "nodePlaylist.playPause()");
-        bwdButton.setAttribute("onclick", "nodePlaylist.prevSong()");
-        fwdButton.setAttribute("onclick", "nodePlaylist.nextSong()");
-        volume.setAttribute("oninput", "nodePlaylist.setVolume(this.value)");
-        volume.setAttribute("onchange", "nodePlaylist.setVolume(this.value)");
+
+        // Playlist bindings
+        upload.addEventListener("change", function() {
+            console.log(upload.value);
+        });
+        shuffleBtn.addEventListener("click", toggleShuffle);
+        repeatBtn.addEventListener("click", toggleRepeat);
+
+        // Controls bindings
+        playButton.addEventListener("click", playPause);
+        bwdButton.addEventListener("click", prevSong);
+        fwdButton.addEventListener("click", nextSong);
+        volume.addEventListener("input", function() {
+            setVolume(this.value);
+        });
+        volume.addEventListener("change", function() {
+            setVolume(this.value);
+        });
+
+        // Chrome Autoplay policy suspends the audio context,
+        // so have to resume on user interaction
+        window.addEventListener("click", function() {
+            if (audioCtx.state === "suspended") {
+                audioCtx.resume().then(() => {
+                    console.log("Audio Context resumed -__-")
+                });
+            }
+        });
     }
 
     function init() {
@@ -439,23 +458,18 @@ var nodePlaylist = (function () {
         gain.connect(analyser);
         analyser.connect(audioCtx.destination);
 
+        analyser.fftSize = 4096;
+        analyser.smoothingTimeConstant = 0.86;
 
-        analyser.fftSize = 1024;
-        analyser.smoothingTimeConstant = 0.9;
-
-
-        frequencyData = new Uint8Array(analyser.frequencyBinCount);
+        frequencyData = new Uint8Array(1024);
 
         // Bind all buttons and get the playlist
         bind();
-        getPlaylist().then(function () {
+        getPlaylist().then(function() {
             createPlaylist();
         });
 
         setVolume(volume.value);
-
-        // Setup canvas dimensions and update the frequency graph
-        updateVis();
     }
     
     return {
@@ -469,7 +483,6 @@ var nodePlaylist = (function () {
         shuffleIndex: shuffleIndex,
         repeat: toggleRepeat,
         shuffled: getShuffled,
-        freq: data,
         init: init
     }
 })();

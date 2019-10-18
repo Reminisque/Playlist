@@ -8,26 +8,30 @@
     <!-- Bootstrap 4 CSS -->
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm"
         crossorigin="anonymous">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css?family=Yanone+Kaffeesatz|Satisfy&display=swap" rel="stylesheet">
+
     <link rel="stylesheet" href="index.css">
 </head>
 
 <body>
 
     <!-- Playlist app -->
-    <div class="container app-grid" id="player">
+    <div class="app-grid" id="player">
         <!-- Heading Icon -->
         <div class="app-grid-navbar">
             <nav class="navbar">
                 <h1 class="mx-auto">
-                    <i class="fas fa-headphones fa-2x"></i>
+                    <p>Node Playlist</p>
                 </h1>                
             </nav>
         </div>
-        <div class="app-grid-sidebar p-1 text-center rounded-right" id="side">
+        <div class="app-grid-sidebar px-2 text-center rounded-right" id="side">
             <div class="pb-3" id="side-menu">
-                <button type="button" class="btn btn-lg" id="add-button">
-                    <i class="fas fa-plus"></i>
-                </button>
+                <form class="upload-btn">
+                    <input type="file" id="upload-song">
+                    <label for="upload-song"><i class="fas fa-plus-circle fa-3x"></i></label>
+                </form>
                 <button type="button" class="btn btn-lg" data-toggle="button"
                     aria-pressed="false" id="shuffle-button">
                     <i class="fas fa-random"></i>
@@ -46,10 +50,9 @@
         <div class="app-grid-playmenu" id="playmenu">
             <nav class="navbar">
                 <div class="iconClick mx-auto">
-                        <i class="fas fa-backward fa-4x" id="bwd-button"></i>
-                        <i class="fas fa-play-circle fa-4x" id="play-button"></i>
-                        <i class="fas fa-forward fa-4x" id="fwd-button"></i>
-
+                        <i class="fas fa-backward fa-2x" id="bwd-button"></i>
+                        <i class="fas fa-play-circle fa-2x" id="play-button"></i>
+                        <i class="fas fa-forward fa-2x" id="fwd-button"></i>
                 </div>
                 <div class="ml-auto">
                         <i class="fas fa-volume-up fa-2x mr-2"></i>
