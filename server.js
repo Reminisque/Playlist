@@ -1,8 +1,41 @@
 const express = require('express');
 const path = require('path');
 const fs = require('fs');
+const multer = require('multer');
+
+const storage = multer.diskStorage({
+    destination: path.join(__dirname, "/playlist"),
+    filename: function(req, file, cb) {
+        cb(null, file.originalname);
+    }
+});
+const multerOpts = {
+    storage: storage,
+    limits: {
+        fileSize: 20 * 1024 * 1024
+    },
+    fileFilter: function(req, file, cb) {
+        checkFile(file, cb);
+    }
+}
+
+function checkFile(file, cb) {
+    if (file === undefined) {
+        return cb(new Error("No uploaded file to check"));
+    }
+    const filetypes = /mp3/;
+    const ext = filetypes.test(path.extname(file.originalname).toLowerCase());
+    const mimetype = filetypes.test(file.mimetype);
+
+    if (ext && mimetype) {
+        cb(null, true);
+    } else {
+        return cb(new Error("Wrong file type"), false);
+    }
+}
 
 const app = express();
+const upload = multer(multerOpts).single('songFile');
 
 // fs.readdir(path.join(__dirname, "/public/playlist"), function(err, items) {
 //     console.log(items);
@@ -11,7 +44,6 @@ const app = express();
 //         console.log(items[i]);
 //     }
 // })
-
 
 var port = 5000;
 
@@ -38,8 +70,18 @@ app.get("/song/:songId", function (req, res) {
 });
 
 // Upload song
-app.get("/upload", function (req, res) {
-    res.send("UPLOADED");
+app.post("/upload", function (req, res) {
+    upload(req, res, (err) => {
+        if (err) {
+            console.log(err);
+            res.send(`File could not be uploaded: ${err.message}`);
+        } else {
+            console.log(req.file);
+            res.status(200).json({
+                song: req.file.originalname
+            });
+        }
+    })
 });
 
 app.listen(port, function () {
