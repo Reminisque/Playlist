@@ -47,14 +47,16 @@ canvas {
     border-radius: 0;
 }
 
-#side .btn, #side .upload-btn label {
+#side .btn,
+#side #upload-btn label {
     -webkit-transition-duration: 0.6s;
     -moz-animation-duration: 0.6s;
     transition-duration: 0.6s;
 }
 
-#side .btn:hover, #side .upload-btn label:hover{
-    color: white;   
+#side .btn:hover,
+#side #upload-btn label:hover{
+    color: white;
 }
 
 /* Side button active toggle state */
@@ -64,22 +66,22 @@ canvas {
 }
 
 /* Animate side button when clicked */
-#side .btn:active, #side .upload-btn:active {
+#side .btn:active,
+#side #upload-btn:active {
     transition-duration: 5ms;
     transform: translateY(2px);
 }
 
 /* Upload song button */
-#side .upload-btn {
+#side #upload-btn {
     padding: 5px 0;
-    padding-right: 20px;
+    margin-right: 20px;
     display: inline-block;
     position: relative;
-    overflow: hidden;
     vertical-align: middle;
 }
 
-#side .upload-btn input[type=file] {
+#side #upload-btn input[type=file] {
     position: absolute;
     width: 0.1px;
     height: 0.1px;
@@ -88,11 +90,57 @@ canvas {
     opacity: 0;
 }
 
-#side .upload-btn label {
+#side #upload-btn label {
     margin: 0;
-    cursor: pointer;
 }
 
+#side-menu {
+    position: relative;
+}
+
+#pop-msg {
+    visibility: hidden;
+    color: #b388ff;
+    display: flex;
+    position: fixed;
+    border: 1px solid #b388ff;
+    border-radius: 10px;
+    max-width: 300px;
+    max-height: 200px;
+    padding: 20px;
+    line-height: 1.3;
+    font-size: 1.5rem;
+    align-items: center;
+    text-align: center;
+}
+
+#pop-msg.top {
+    top: 0;
+    margin-top: 20px;
+}
+
+#pop-msg.bottom {
+    bottom: 0;
+    margin-bottom: 40px;
+}
+
+#pop-msg.left {
+    left: 0;
+    margin-left: 100px;
+}
+
+#pop-msg.right {
+    right: 0;
+    margin-right: 100px;
+}
+
+#pop-msg.show {
+    visibility: visibile;
+    -webkit-animation-duration: 1s;
+    -webkit-animation-fill-mode: forwards;
+    animation-duration: 1;
+    animation-fill-mode: forwards;
+}
 
 /* The playlist area */
 #song-playlist {
@@ -112,13 +160,6 @@ canvas {
 /* The area where current song information is displayed */
 #content {
     max-height: 100%;
-}
-
-/* The volume slider */
-.vol-control {
-    position: relative;
-    top: 50%;
-    transform: translateY(50%);
 }
 
 /* Song name shown as entry in playlist */
@@ -190,10 +231,56 @@ canvas {
     border: solid 2px #7c4dff;
 }
 
-/* Center horizontally */
-.abs-center-x {
-    position: absolute;
-    left: 50%;
-    transform: translateX(-50%);
+.fade-in {
+    -webkit-animation: fade-in;
+    animation: fade-in;
 }
 
+.fade-out {
+    -webkit-animation: fade-out;
+    animation: fade-out;
+}
+
+@-webkit-keyframes fade-in {
+    from {
+        visibility: hidden;
+        opacity: 0;
+    }
+    to {
+        visibility: visible;
+        opacity: 1;
+    }
+}
+
+@keyframes fade-in {
+    from {
+        visibility: hidden;
+        opacity: 0;
+    }
+    to {
+        visibility: visible;
+        opacity: 1;
+    }
+}
+
+@-webkit-keyframes fade-out {
+    from {
+        visibility: visible;
+        opacity: 1;
+    }
+    to {
+        visibility: hidden;
+        opacity: 0;
+    }
+}
+
+@keyframes fade-out {
+    from {
+        visibility: visible;
+        opacity: 1;
+    }
+    to {
+        visibility: hidden;
+        opacity: 0;
+    }
+}

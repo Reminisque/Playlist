@@ -2,42 +2,59 @@ var nodePlaylist = (function() {
     const audio = document.querySelector("#audio");
     const bwdButton = document.querySelector("#bwd-button");
     const canvas = document.querySelector("#analyserCanvas");
+    const content = document.querySelector("#content");
     const fwdButton = document.querySelector("#fwd-button");
     const playButton = document.querySelector("#play-button");
-    const repeatBtn = document.querySelector("#repeat-button");
-    const shuffleBtn = document.querySelector("#shuffle-button");
+    const repeatButton = document.querySelector("#repeat-button");
+    const shuffleButton = document.querySelector("#shuffle-button");
     const songPlaylist = document.querySelector("#song-playlist");
     const upload = document.querySelector("#upload-song");
     const volume = document.querySelector("#vol-control");
-
-    const content = document.getElementById("content");
     
-    let songButtons;
-    let requestID;
+    const pop = document.querySelector("#pop-msg");
+    
+    const VIS_RADIUS = 100;
+    const FREQ_BAR_LEN = 300;
 
+    let requestID;
+    
     let audioCtx = new AudioContext();
     let analyser = audioCtx.createAnalyser();
     let gain = audioCtx.createGain();
     let frequencyData;
     let songs = [];
+    let songButtons = [];
     let shuffled = [];  // Shuffled song indeces
     let playlistIndex = -1;
     let shuffleIndex = -1;
     let shuffle = 0;
     let repeat = 0;
     let canvasContext = canvas.getContext("2d");
-    let visRadius = 100;
-    let freqBarLength = 300;
 
     let audioSrc = audioCtx.createMediaElementSource(audio);
 
-
+    // Uploads user-selected song to server
     function uploadSong() {
-        console.log("uploadSong WORK IN PROGRESS");
-        // return new Promise(function(resolve, reject) {
-        //    var xhttp = new XMLHttpRequest(); 
-           
-        // });
+        var xhttp = new XMLHttpRequest();
+        var songFile = upload.files[0];
+        var formData = new FormData();
+
+        // Clear file from input so same file can be uploaded again
+        upload.value = null;
+        
+        xhttp.onreadystatechange = function() {
+            if (this.readyState == 4) {
+                console.log(this.response);
+                let songName = JSON.parse(this.response)["song"];
+                playlistAdd(songName);
+                popup("fade-in", "fade-out", 1000, 3000, `${songName} UPLOADED`);
+            }
+        };
+        
+        formData.append("songFile", songFile);
+        xhttp.open("POST", "upload", true);
+        xhttp.send(formData);
+    
     }
 
     // Requests from server the names of all currently stored songs
@@ -71,6 +88,25 @@ var nodePlaylist = (function() {
         });
     }
 
+    function playlistAdd(songName) {
+        var songButton = document.createElement("button");
+        var songButtonText = document.createElement("span");
+
+        songButtonText.appendChild(document.createTextNode(songName));
+        songButtonText.classList.add("songText");
+
+        songButton.appendChild(songButtonText);
+        songButton.classList.add("btn", "btn-lg", "song");
+        songButton.setAttribute("type", "button");
+        songButton.addEventListener("click", function() {
+            streamSong(songName);
+        });
+
+        songPlaylist.appendChild(songButton);
+        songButtons.push(songButton);
+        songs.push(songName);
+    }
+
     // Creates the playlist using the songs curently stored in songs array
     function createPlaylist() {
         for (var i = 0; i < songs.length; i++) {
@@ -86,27 +122,30 @@ var nodePlaylist = (function() {
             songButton.setAttribute("onclick", "nodePlaylist.streamSong('" + songs[i] + "')");
 
             songPlaylist.appendChild(songButton);
+            songButtons.push(songButton);
         }
 
-        songButtons = document.getElementsByClassName("song");
     }
 
     // Plays and pauses the song and toggles the play button icon
     // based on audio state (playing or paused)
     function playPause() {
-        // Check for audio source to prevent an interrupt error 
-        //  when there is no audio loaded and user attempts to
-        //  stream a song after having toggled the play button
         if (requestID != null) {
             cancelAnimationFrame(requestID);
             requestID = null;
         }
+        // Check for audio source to prevent an interrupt error 
+        //  when there is no audio loaded and user attempts to
+        //  stream a song after having toggled the play button
         if (audio.paused && audio.src) {
             playButton.classList.remove("fa-play-circle");
             playButton.classList.add("fa-pause-circle");
-            updateVis();
+            if (requestID == null) {
+                updateVis();
+            }
             return audio.play();
         } else {
+            
             playButton.classList.remove("fa-pause-circle");
             playButton.classList.add("fa-play-circle");
             return audio.pause();
@@ -187,7 +226,7 @@ var nodePlaylist = (function() {
                 console.log (
                     "Shuffle Index: " + shuffleIndex
                     + " --song-> " + shuffled[shuffleIndex]);
-            }     
+            }
         } else {
             if (playlistIndex < songs.length - 1) {
                 streamSong(songs[playlistIndex + 1]);
@@ -265,13 +304,15 @@ var nodePlaylist = (function() {
         }
     }
 
-    // Plays the next song and toggles the play button
-    // To be used when a song ends to ensure play button toggle
+    // Handle song ending by going to next song or stopping animation if at end
     function songEnd() {
-        cancelAnimationFrame(requestID);
-        requestID = null;
-        nextSong();
-        togglePlayIcon();
+        if (!repeat && ((shuffle && shuffleIndex == shuffled.length - 1) || playlistIndex == songs.length - 1)) {
+            setTimeout(function() {
+                playPause();
+            }, 1000);
+        } else {
+            nextSong();
+        }
     }
 
     // Get the array that has the shuffled playlist indeces
@@ -280,13 +321,12 @@ var nodePlaylist = (function() {
     }
 
     function refreshCanvas() {
-        // Clear the canvas before drawing new bars
         canvasContext.clearRect(0, 0, canvas.width, canvas.height);
         canvas.width = content.offsetWidth;
         canvas.height = content.offsetHeight;
     }
     
-    // Draw circular visualization
+    // === Visualizer Around Circle ===
     function drawCirVis() {
         const bins = 180;
 
@@ -298,7 +338,7 @@ var nodePlaylist = (function() {
         canvasContext.arc(
             canvas.width/2,     // center x-coord
             canvas.height/2,    // center y-coord
-            visRadius,          // radius
+            VIS_RADIUS,          // radius
             0,                  // start angle (radians)
             Math.PI*2           // end angle (radians)
         );
@@ -308,60 +348,60 @@ var nodePlaylist = (function() {
         for (var i = 0; i < bins; i++) {
             let barLength = Math.pow(frequencyData[i + Math.ceil(i / 90)], 3) / Math.pow(255, 3);
 
-            barLength *= freqBarLength;
+            barLength *= FREQ_BAR_LEN;
 
             canvasContext.beginPath();
 
             // === Full Circle ===
             // canvasContext.moveTo(
-            //     canvas.width/2 + visRadius * Math.cos(Math.PI * 2 * i / bins),
-            //     canvas.height/2 + visRadius * Math.sin( Math.PI * 2 *i / bins)
+            //     canvas.width/2 + VIS_RADIUS * Math.cos(Math.PI * 2 * i / bins),
+            //     canvas.height/2 + VIS_RADIUS * Math.sin( Math.PI * 2 *i / bins)
             // )
             // canvasContext.lineTo(
-            //     canvas.width/2 + (visRadius + barLength) * Math.cos(Math.PI * 2 * i / bins),
-            //     canvas.height/2 + (visRadius + barLength) * Math.sin(Math.PI * 2 * i / bins)
+            //     canvas.width/2 + (VIS_RADIUS + barLength) * Math.cos(Math.PI * 2 * i / bins),
+            //     canvas.height/2 + (VIS_RADIUS + barLength) * Math.sin(Math.PI * 2 * i / bins)
             // )
             
             // === Opposite Horizontal Halves ===
             // canvasContext.moveTo(
-            //     canvas.width/2 + visRadius * Math.cos(Math.PI * i / bins),
-            //     canvas.height/2 + visRadius * Math.sin(Math.PI * i / bins)
+            //     canvas.width/2 + VIS_RADIUS * Math.cos(Math.PI * i / bins),
+            //     canvas.height/2 + VIS_RADIUS * Math.sin(Math.PI * i / bins)
             // )
             // canvasContext.lineTo(
-            //     canvas.width/2 + (visRadius + barLength) * Math.cos(Math.PI * i / bins),
-            //     canvas.height/2 + (visRadius + barLength) * Math.sin(Math.PI * i / bins)
+            //     canvas.width/2 + (VIS_RADIUS + barLength) * Math.cos(Math.PI * i / bins),
+            //     canvas.height/2 + (VIS_RADIUS + barLength) * Math.sin(Math.PI * i / bins)
             // )
 
             // canvasContext.moveTo(
-            //     canvas.width/2 + visRadius * Math.cos(Math.PI + Math.PI * i / bins),
-            //     canvas.height/2 + visRadius * Math.sin(Math.PI + Math.PI * i / bins)
+            //     canvas.width/2 + VIS_RADIUS * Math.cos(Math.PI + Math.PI * i / bins),
+            //     canvas.height/2 + VIS_RADIUS * Math.sin(Math.PI + Math.PI * i / bins)
             // )
             // canvasContext.lineTo(
-            //     canvas.width/2 + (visRadius + barLength) * Math.cos(Math.PI + Math.PI * i / bins),
-            //     canvas.height/2 + (visRadius + barLength) * Math.sin(Math.PI + Math.PI * i / bins)
+            //     canvas.width/2 + (VIS_RADIUS + barLength) * Math.cos(Math.PI + Math.PI * i / bins),
+            //     canvas.height/2 + (VIS_RADIUS + barLength) * Math.sin(Math.PI + Math.PI * i / bins)
             // )
 
             // === Vertical Mirrored Halves ===
             let halfPi = Math.PI * 0.5
 
             canvasContext.moveTo(
-                canvas.width/2 + visRadius * Math.cos(Math.PI * (i) / bins - halfPi),
-                canvas.height/2 + visRadius * Math.sin(Math.PI * (i) / bins - halfPi)
+                canvas.width/2 + VIS_RADIUS * Math.cos(Math.PI * (i) / bins - halfPi),
+                canvas.height/2 + VIS_RADIUS * Math.sin(Math.PI * (i) / bins - halfPi)
             );
 
             canvasContext.lineTo(
-                canvas.width/2 + (visRadius + barLength) * Math.cos(Math.PI * (i) / bins - halfPi),
-                canvas.height/2 + (visRadius + barLength) * Math.sin(Math.PI * (i) / bins - halfPi) 
+                canvas.width/2 + (VIS_RADIUS + barLength) * Math.cos(Math.PI * (i) / bins - halfPi),
+                canvas.height/2 + (VIS_RADIUS + barLength) * Math.sin(Math.PI * (i) / bins - halfPi) 
             )
 
             canvasContext.moveTo(
-                canvas.width/2 + visRadius * Math.cos(Math.PI * (bins - i - 1) / bins + halfPi),
-                canvas.height/2 + visRadius * Math.sin(Math.PI * (bins - i - 1) / bins + halfPi)
+                canvas.width/2 + VIS_RADIUS * Math.cos(Math.PI * (bins - i - 1) / bins + halfPi),
+                canvas.height/2 + VIS_RADIUS * Math.sin(Math.PI * (bins - i - 1) / bins + halfPi)
             );
 
             canvasContext.lineTo(
-                canvas.width/2 + (visRadius + barLength) * Math.cos(Math.PI * (bins - i - 1) / bins + halfPi),
-                canvas.height/2 + (visRadius + barLength) * Math.sin(Math.PI * (bins - i - 1) / bins + halfPi) 
+                canvas.width/2 + (VIS_RADIUS + barLength) * Math.cos(Math.PI * (bins - i - 1) / bins + halfPi),
+                canvas.height/2 + (VIS_RADIUS + barLength) * Math.sin(Math.PI * (bins - i - 1) / bins + halfPi) 
             )
 
             // Draw
@@ -370,16 +410,16 @@ var nodePlaylist = (function() {
         
     }
     
+    // === Bar Graph Visualizer ===
     function drawBarVis() {
         canvasContext.fillStyle = "#b388ff";
 
         const bins = canvas.width / 4;
         const barWidth = canvas.width / bins;
-        let x_coord = 0;    // Starting x-coordinate
+        let x_coord = 0;
 
         // Draw bars
         for (var i = 0; i < bins; i++) {
-            // === Bar Graph Visualizer ===
             let barLength = Math.pow(frequencyData[i + Math.ceil(i / 90)], 3) / Math.pow(255, 3);
 
             canvasContext.fillRect(
@@ -402,11 +442,29 @@ var nodePlaylist = (function() {
         // Get the frequency data and calculate the bar width
         analyser.getByteFrequencyData(frequencyData);
         // console.log(frequencyData);
-        // drawCirVis();
-        drawBarVis();
-
+        drawCirVis();
+        // drawBarVis();
+        // console.log("Frames");
         requestID = requestAnimationFrame(updateVis);
 
+    }
+
+    // Function for popup notification appear and its configuration
+    // inAnim, outAnim -> class name with CSS animation
+    // animDuration, duration -> time in ms     
+    function popup(inAnim, outAnim, animTime, duration, message) {
+        if (message != undefined) {
+            pop.innerHTML = message;
+        }
+
+        pop.classList.add("show", inAnim);
+        setTimeout(function() { 
+            pop.classList.add(outAnim);
+            setTimeout(function() {
+                pop.classList.remove("show", inAnim, outAnim);
+                pop.innerHTML = "";
+            }, animTime);
+        }, animTime + duration);
     }
 
     function freqData() {
@@ -424,11 +482,9 @@ var nodePlaylist = (function() {
         audio.addEventListener("canplay", playPause);
 
         // Playlist bindings
-        upload.addEventListener("change", function() {
-            console.log(upload.value);
-        });
-        shuffleBtn.addEventListener("click", toggleShuffle);
-        repeatBtn.addEventListener("click", toggleRepeat);
+        upload.addEventListener("change", uploadSong);
+        shuffleButton.addEventListener("click", toggleShuffle);
+        repeatButton.addEventListener("click", toggleRepeat);
 
         // Controls bindings
         playButton.addEventListener("click", playPause);
