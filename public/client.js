@@ -16,6 +16,7 @@ var nodePlaylist = (function() {
     const VIS_RADIUS = 100;
     const FREQ_BAR_LEN = 300;
 
+    let debug = true;
     let requestID;
     
     let audioCtx = new AudioContext();
@@ -23,8 +24,8 @@ var nodePlaylist = (function() {
     let gain = audioCtx.createGain();
     let frequencyData;
     let songs = [];
-    let songButtons = [];
-    let shuffled = [];  // Shuffled song indeces
+    let songButtons = {};
+    let shuffled = [];
     let playlistIndex = -1;
     let shuffleIndex = -1;
     let shuffle = 0;
@@ -33,28 +34,61 @@ var nodePlaylist = (function() {
 
     let audioSrc = audioCtx.createMediaElementSource(audio);
 
+    function log(toLog) {
+        if (debug) {
+            console.log(toLog);
+        }
+    }
+
     // Uploads user-selected song to server
     function uploadSong() {
         var xhttp = new XMLHttpRequest();
         var songFile = upload.files[0];
         var formData = new FormData();
 
-        // Clear file from input so same file can be uploaded again
+        // Clear file from input so reuploading same file triggers change event
         upload.value = null;
         
         xhttp.onreadystatechange = function() {
             if (this.readyState == 4) {
-                console.log(this.response);
-                let songName = JSON.parse(this.response)["song"];
-                playlistAdd(songName);
-                popup("fade-in", "fade-out", 1000, 3000, `${songName} UPLOADED`);
+                log(this.response);
+                let res = JSON.parse(this.response);
+                if (res["err"]) {
+                    popup("fade-in", "fade-out", 1000, 2000, `Upload failed: ${res["err"]}`);
+                } else {
+                    let songName = res["song"];
+                    playlistAdd(songName);
+                    songs.push(songName);
+                    popup("fade-in", "fade-out", 1000, 3000, `${songName} UPLOADED`);
+                }
             }
         };
         
         formData.append("songFile", songFile);
         xhttp.open("POST", "upload", true);
         xhttp.send(formData);
-    
+    }
+
+    // Add song button to playlist
+    function playlistAdd(songName) {
+        var songButton = document.createElement("button");
+        var songButtonText = document.createElement("span");
+
+        songButtonText.appendChild(document.createTextNode(songName));
+        songButtonText.classList.add("songText");
+
+        songButton.appendChild(songButtonText);
+        songButton.classList.add("btn", "btn-lg", "song");
+        songButton.setAttribute("type", "button");
+        songButton.addEventListener("click", function() {
+            streamSong(songName);
+        });
+
+        songPlaylist.appendChild(songButton);
+        songButtons[songName] = {
+            button: songButton,
+            index: songButtons.length
+        }
     }
 
     // Requests from server the names of all currently stored songs
@@ -88,43 +122,11 @@ var nodePlaylist = (function() {
         });
     }
 
-    function playlistAdd(songName) {
-        var songButton = document.createElement("button");
-        var songButtonText = document.createElement("span");
-
-        songButtonText.appendChild(document.createTextNode(songName));
-        songButtonText.classList.add("songText");
-
-        songButton.appendChild(songButtonText);
-        songButton.classList.add("btn", "btn-lg", "song");
-        songButton.setAttribute("type", "button");
-        songButton.addEventListener("click", function() {
-            streamSong(songName);
-        });
-
-        songPlaylist.appendChild(songButton);
-        songButtons.push(songButton);
-        songs.push(songName);
-    }
-
     // Creates the playlist using the songs curently stored in songs array
     function createPlaylist() {
         for (var i = 0; i < songs.length; i++) {
-            var songButton = document.createElement("button");
-            var songButtonText = document.createElement("span");
-
-            songButtonText.appendChild(document.createTextNode(songs[i]));
-            songButtonText.classList.add("songText");
-
-            songButton.appendChild(songButtonText);
-            songButton.classList.add("btn", "btn-lg", "song");
-            songButton.setAttribute("type", "button");
-            songButton.setAttribute("onclick", "nodePlaylist.streamSong('" + songs[i] + "')");
-
-            songPlaylist.appendChild(songButton);
-            songButtons.push(songButton);
+            playlistAdd(songs[i]);
         }
-
     }
 
     // Plays and pauses the song and toggles the play button icon
@@ -145,21 +147,9 @@ var nodePlaylist = (function() {
             }
             return audio.play();
         } else {
-            
             playButton.classList.remove("fa-pause-circle");
             playButton.classList.add("fa-play-circle");
             return audio.pause();
-        }
-    }
-
-    // Switches play button between play and pause icons
-    function togglePlayIcon() {
-        if (playButton.classList.contains("fa-play-circle")) {
-            playButton.classList.remove("fa-play-circle");
-            playButton.classList.add("fa-pause-circle");
-        } else {
-            playButton.classList.remove("fa-pause-circle");
-            playButton.classList.add("fa-play-circle");    
         }
     }
 
@@ -170,24 +160,10 @@ var nodePlaylist = (function() {
 
         // Highlight the song the playlist and remove old highlight
         if (playlistIndex >= 0) {
-            songButtons[playlistIndex].classList.remove("active");
+            songButtons[songs[playlistIndex]].button.classList.remove("active");
         }
-        playlistIndex = songIndex(songName);    // Update index
-        songButtons[playlistIndex].classList.add("active");
-
-        //-----OLD----//
-        // fetch("song/" + songName)
-        //     .then(response => response.blob())
-        //     .then(blob => {
-        //         audio.src = URL.createObjectURL(blob);
-        //         audio.load();
-        //         audio.oncanplay = playPause;
-        //         if (playlistIndex >= 0) {
-        //             songButtons[playlistIndex].classList.remove("active");
-        //         }
-        //         playlistIndex = songIndex(songName);
-        //         songButtons[playlistIndex].classList.add("active");
-        //     });
+        playlistIndex = songButtons[songName].index;
+        songButtons[songName].button.classList.add("active");
     }
 
     // Randomizes/shuffles the elements in given array
@@ -217,23 +193,23 @@ var nodePlaylist = (function() {
             if (shuffleIndex < shuffled.length - 1) {
                 shuffleIndex++;
                 streamSong(songs[shuffled[shuffleIndex]]);
-                console.log (
+                log (
                     "Shuffle Index: " + shuffleIndex
                     + " --song-> " + shuffled[shuffleIndex]);
             } else if (shuffleIndex >= shuffled.length - 1 && repeat) {
-                streamSong(songs[shuffled[0]]);
                 shuffleIndex = 0;
-                console.log (
+                streamSong(songs[shuffled[0]]);
+                log (
                     "Shuffle Index: " + shuffleIndex
                     + " --song-> " + shuffled[shuffleIndex]);
             }
         } else {
             if (playlistIndex < songs.length - 1) {
                 streamSong(songs[playlistIndex + 1]);
-                console.log ("Playlist Index: " + (playlistIndex));
+                log ("Playlist Index: " + (playlistIndex));
             } else if (playlistIndex >= songs.length - 1 && repeat) {
                 streamSong(songs[0]);
-                console.log ("Playlist Index: " + (playlistIndex));
+                log ("Playlist Index: " + (playlistIndex));
             }
         }  
     }
@@ -245,24 +221,24 @@ var nodePlaylist = (function() {
             if (shuffleIndex > 0) {
                 shuffleIndex--;
                 streamSong(songs[shuffled[shuffleIndex]]);
-                console.log (
+                log (
                     "Shuffle Index: " + shuffleIndex
                     + " --song-> " + shuffled[shuffleIndex]);
  
             } else if (shuffleIndex <= 0 && repeat) {
-                streamSong(songs[shuffled[shuffled.length - 1]]);
                 shuffleIndex = shuffled.length - 1;
-                console.log (
+                streamSong(songs[shuffled[shuffled.length - 1]]);
+                log (
                     "Shuffle Index: " + shuffleIndex
                     + " --song-> " + shuffled[shuffleIndex]);
             }
         } else {
             if (playlistIndex > 0) {
                 streamSong(songs[playlistIndex-1]);
-                console.log ("Playlist Index: " + (playlistIndex));
+                log ("Playlist Index: " + (playlistIndex));
             } else if (playlistIndex <= 0 && repeat) {
                 streamSong(songs[songs.length-1]);
-                console.log ("Playlist Index: " + (playlistIndex));
+                log ("Playlist Index: " + (playlistIndex));
             }
         }
     }
@@ -280,7 +256,7 @@ var nodePlaylist = (function() {
         } else {
             shuffle = 1;
             shuffleIndex = 0;
-            console.log(createShuffle());
+            log(createShuffle());
         }
         return shuffle;
     }
@@ -295,20 +271,16 @@ var nodePlaylist = (function() {
         return repeat;
     }
 
-    // Get a song's index in the playlist
-    function songIndex(songName) {
-        for (var i = 0; i < songs.length; i++) {
-            if (songs[i] === songName) {
-                return i;
-            }
-        }
-    }
-
     // Handle song ending by going to next song or stopping animation if at end
     function songEnd() {
         if (!repeat && ((shuffle && shuffleIndex == shuffled.length - 1) || playlistIndex == songs.length - 1)) {
             setTimeout(function() {
-                playPause();
+                if (requestID != null) {
+                    cancelAnimationFrame(requestID);
+                    requestID = null;
+                }
+                playButton.classList.remove("fa-pause-circle");
+                playButton.classList.add("fa-play-circle");
             }, 1000);
         } else {
             nextSong();
@@ -346,6 +318,8 @@ var nodePlaylist = (function() {
 
         // Draw bars
         for (var i = 0; i < bins; i++) {
+            // The more lively amplitudes seem to be from the earlier freqencies,
+            //  to use as much of the frequencies as possible it skips later on
             let barLength = Math.pow(frequencyData[i + Math.ceil(i / 90)], 3) / Math.pow(255, 3);
 
             barLength *= FREQ_BAR_LEN;
@@ -420,11 +394,13 @@ var nodePlaylist = (function() {
 
         // Draw bars
         for (var i = 0; i < bins; i++) {
+            // The more lively amplitudes seem to be from the earlier freqencies,
+            //  but to use as much of the frequencies as possible it skips later on
             let barLength = Math.pow(frequencyData[i + Math.ceil(i / 90)], 3) / Math.pow(255, 3);
 
             canvasContext.fillRect(
                 x_coord,
-                canvas.height -     ((canvas.height-1) * barLength),
+                canvas.height - ((canvas.height-1) * barLength),
                 barWidth,
                 canvas.height * barLength
             );
@@ -441,10 +417,10 @@ var nodePlaylist = (function() {
         
         // Get the frequency data and calculate the bar width
         analyser.getByteFrequencyData(frequencyData);
-        // console.log(frequencyData);
+        // log(frequencyData);
         drawCirVis();
         // drawBarVis();
-        // console.log("Frames");
+        // log("Frames");
         requestID = requestAnimationFrame(updateVis);
 
     }
@@ -465,14 +441,6 @@ var nodePlaylist = (function() {
                 pop.innerHTML = "";
             }, animTime);
         }, animTime + duration);
-    }
-
-    function freqData() {
-        return frequencyData;
-    }
-
-    function data() {
-        console.log(freqData());
     }
 
     // Bind click events and other interactions to controls
@@ -502,7 +470,7 @@ var nodePlaylist = (function() {
         window.addEventListener("click", function() {
             if (audioCtx.state === "suspended") {
                 audioCtx.resume().then(() => {
-                    console.log("Audio Context resumed -__-")
+                    log("Audio Context resumed");
                 });
             }
         });
