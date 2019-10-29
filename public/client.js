@@ -87,7 +87,7 @@ var nodePlaylist = (function() {
         songPlaylist.appendChild(songButton);
         songButtons[songName] = {
             button: songButton,
-            index: songButtons.length
+            index: songs.length
         }
     }
 
@@ -103,6 +103,7 @@ var nodePlaylist = (function() {
                     songs = [];
 
                     for (var i = 0; i < playlist.length; i++) {
+                        playlistAdd(playlist[i]);
                         songs.push(playlist[i]);
                     }
                     
@@ -120,13 +121,6 @@ var nodePlaylist = (function() {
             xhttp.open("GET", "playlist", true);
             xhttp.send();
         });
-    }
-
-    // Creates the playlist using the songs curently stored in songs array
-    function createPlaylist() {
-        for (var i = 0; i < songs.length; i++) {
-            playlistAdd(songs[i]);
-        }
     }
 
     // Plays and pauses the song and toggles the play button icon
@@ -273,14 +267,16 @@ var nodePlaylist = (function() {
 
     // Handle song ending by going to next song or stopping animation if at end
     function songEnd() {
-        if (!repeat && ((shuffle && shuffleIndex == shuffled.length - 1) || playlistIndex == songs.length - 1)) {
+        if (!repeat && ((shuffle && shuffleIndex == shuffled.length - 1) || playlistIndex === songs.length - 1)) {
             setTimeout(function() {
-                if (requestID != null) {
-                    cancelAnimationFrame(requestID);
-                    requestID = null;
+                if (audio.paused) {
+                    if (requestID != null) {
+                        cancelAnimationFrame(requestID);
+                        requestID = null;
+                    }
+                    playButton.classList.remove("fa-pause-circle");
+                    playButton.classList.add("fa-play-circle");
                 }
-                playButton.classList.remove("fa-pause-circle");
-                playButton.classList.add("fa-play-circle");
             }, 1000);
         } else {
             nextSong();
@@ -489,9 +485,7 @@ var nodePlaylist = (function() {
 
         // Bind all buttons and get the playlist
         bind();
-        getPlaylist().then(function() {
-            createPlaylist();
-        });
+        getPlaylist();
 
         setVolume(volume.value);
     }
