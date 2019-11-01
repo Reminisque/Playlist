@@ -57,9 +57,12 @@ var nodePlaylist = (function() {
                     popup("fade-in", "fade-out", 1000, 2000, `Upload failed: ${res["err"]}`);
                 } else {
                     let songName = res["song"];
-                    playlistAdd(songName);
-                    songs.push(songName);
-                    popup("fade-in", "fade-out", 1000, 3000, `${songName} UPLOADED`);
+                    if (playlistAdd(songName) === true) {
+                        songs.push(songName);
+                        popup("fade-in", "fade-out", 1000, 3000, `${songName} UPLOADED`);
+                    } else {
+                        popup("fade-in", "fade-out", 1000, 2000, `${songName} REPLACED`); 
+                    }
                 }
             }
         };
@@ -71,6 +74,10 @@ var nodePlaylist = (function() {
 
     // Add song button to playlist
     function playlistAdd(songName) {
+        if (songButtons[songName] != undefined) {
+            return false;
+        }
+        
         var songButton = document.createElement("button");
         var songButtonText = document.createElement("span");
 
@@ -89,6 +96,8 @@ var nodePlaylist = (function() {
             button: songButton,
             index: songs.length
         }
+
+        return true;
     }
 
     // Requests from server the names of all currently stored songs
@@ -105,6 +114,7 @@ var nodePlaylist = (function() {
                     for (var i = 0; i < playlist.length; i++) {
                         playlistAdd(playlist[i]);
                         songs.push(playlist[i]);
+                        
                     }
                     
                     resolve("Got the playlist. Check song array.");
