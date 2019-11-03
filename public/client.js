@@ -8,6 +8,8 @@ var nodePlaylist = (function() {
     const repeatButton = document.querySelector("#repeat-button");
     const shuffleButton = document.querySelector("#shuffle-button");
     const songPlaylist = document.querySelector("#song-playlist");
+    const songCurrTime = document.querySelector("#song-curr-time");
+    const songDuration = document.querySelector("#song-duration");
     const upload = document.querySelector("#upload-song");
     const volume = document.querySelector("#vol-control");
     
@@ -307,6 +309,8 @@ var nodePlaylist = (function() {
     // === Visualizer Around Circle ===
     function drawCirVis() {
         const bins = 180;
+        const halfPi = Math.PI * 0.5
+
 
         canvasContext.strokeStyle = "#b388ff";
         canvasContext.lineWidth = 3;
@@ -362,7 +366,6 @@ var nodePlaylist = (function() {
             // )
 
             // === Vertical Mirrored Halves ===
-            let halfPi = Math.PI * 0.5
 
             canvasContext.moveTo(
                 canvas.width/2 + VIS_RADIUS * Math.cos(Math.PI * (i) / bins - halfPi),
@@ -449,11 +452,32 @@ var nodePlaylist = (function() {
         }, animTime + duration);
     }
 
+    function formatMinSec(time) {
+        let minutes = Math.floor(time / 60);
+        let seconds = ("0" + Math.ceil(time % 60)).slice(-2);        
+        return `${minutes}:${seconds}`;
+    }
+
     // Bind click events and other interactions to controls
     function bind() {
         // Audio tag bindings
         audio.addEventListener("ended", songEnd);
-        audio.addEventListener("canplay", playPause);
+        audio.addEventListener("canplay", function() {
+            if (audio.paused) {
+                playPause();
+            }
+        });
+        audio.addEventListener("stalled", function() {
+            playPause();
+            console.log("Stalled and waiting for data");
+        });
+        audio.addEventListener("loadedmetadata", function() {
+            songCurrTime.innerHTML = "0:00";
+            songDuration.innerHTML = formatMinSec(audio.duration);
+        });
+        audio.addEventListener("timeupdate", function() {
+           songCurrTime.innerHTML = formatMinSec(audio.currentTime);
+        });
 
         // Playlist bindings
         upload.addEventListener("change", uploadSong);
