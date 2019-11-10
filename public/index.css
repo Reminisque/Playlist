@@ -6,18 +6,87 @@ body {
     height: 100%;
     width: 100%;
     background: #1f2433;
-    font-family: 'Yanone Kaffeesatz', sans-serif;
-}
-
-h1 {
-    text-align: center;
-    color: #b388ff;
-    font-family: 'Satisfy'
+    /* background: white; */
+    font-family: 'Oswald', sans-serif;
 }
 
 canvas {
     height: 100%;
     width: 100%;
+}
+
+input[type=range] {
+    -webkit-appearance: none;
+    background: transparent;
+    cursor: pointer;
+}
+
+.btn:focus, 
+input[type=range]:focus,
+input[type="file"]:focus + label {
+    outline: none;
+    box-shadow: 0px 0px 6px 0.15rem rgba(255, 129, 255, 0.514);
+}
+
+input[type=range]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    margin-top: -6px;
+    height: 20px;
+    width: 20px;
+    border-radius: 50%;
+    background: #ffffff;
+    cursor: pointer;
+}
+  
+input[type=range]::-moz-range-thumb {
+    height: 20px;
+    width: 20px;
+    border-radius: 50%;
+    background: #ffffff;
+    cursor: pointer;
+}
+  
+input[type=range]::-ms-thumb {
+    margin-top: 1px;
+    height: 20px;
+    width: 20px;
+    border-radius: 50%;
+    background: #ffffff;
+    cursor: pointer;
+}
+
+input[type=range]::-webkit-slider-runnable-track {
+    width: 100%;
+    height: 8px;
+    cursor: pointer;
+    background: #b388ff;
+    border: 0.2px solid #010101;
+    border-radius: 1.3px;
+  }
+
+input[type=range]::-moz-range-track {
+    width: 100%;
+    height: 8px;
+    cursor: pointer;
+    background: #b388ff;
+    border: 0.2px solid #010101;
+    border-radius: 1.3px;
+}
+
+input[type=range]::-ms-track {
+    width: 100%;
+    height: 8px;
+    cursor: pointer;
+    background: transparent;
+    border-color: transparent;
+    border-width: 16px 0;
+    color: transparent;
+}
+input[type=range]::-ms-fill-lower,
+input[type=range]::-ms-fill-upper {
+    background: #b388ff;
+    border: 0.2px solid #010101;
+    border-radius: 2.6px;
 }
 
 /* The player as a whole, excluding the header */
@@ -31,6 +100,10 @@ canvas {
 /* The sidebar of the player; made of the playlist and its menu*/
 
 #side {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    height: 100%;
     max-width: 100%;
     max-height: 100%;
     color: #b388ff;
@@ -40,23 +113,22 @@ canvas {
 
 
 #side .btn {
-    border: none;
-    background: none;
     color: #b388ff;
     padding: 4px 30px;
     border-radius: 0;
 }
 
 #side .btn,
-#side #upload-btn label {
-    -webkit-transition-duration: 0.6s;
-    -moz-animation-duration: 0.6s;
-    transition-duration: 0.6s;
+#upload-btn label {
+    -webkit-transition: color 0.6s, background 0.6s;
+    -moz-transition: color 0.6s, background 0.6s;
+    transition: color 0.6s, background 0.6s;
 }
 
 #side .btn:hover,
-#side #upload-btn label:hover{
-    color: white;
+#side .btn:focus,
+#upload-btn label:hover{
+    color: #f58fdb;
 }
 
 /* Side button active toggle state */
@@ -67,13 +139,13 @@ canvas {
 
 /* Animate side button when clicked */
 #side .btn:active,
-#side #upload-btn:active {
+#upload-btn:active {
     transition-duration: 5ms;
     transform: translateY(2px);
 }
 
 /* Upload song button */
-#side #upload-btn {
+#upload-btn {
     padding: 5px 0;
     margin-right: 20px;
     display: inline-block;
@@ -81,7 +153,7 @@ canvas {
     vertical-align: middle;
 }
 
-#side #upload-btn input[type=file] {
+#upload-btn input[type=file] {
     position: absolute;
     width: 0.1px;
     height: 0.1px;
@@ -90,7 +162,7 @@ canvas {
     opacity: 0;
 }
 
-#side #upload-btn label {
+#upload-btn label {
     margin: 0;
 }
 
@@ -100,10 +172,10 @@ canvas {
 
 #pop-msg {
     visibility: hidden;
-    color: #b388ff;
+    color: #f58fdb;
     display: flex;
     position: fixed;
-    border: 1px solid #b388ff;
+    border: 1px solid #f58fdb;
     border-radius: 10px;
     max-width: 300px;
     max-height: 200px;
@@ -144,9 +216,9 @@ canvas {
 
 /* The playlist area */
 #song-playlist {
-    height: 100%;
-    max-height: 95%;
+    flex-grow: 1;
     overflow-y: auto;
+    padding: 0 12px;
 }
 
 #song-playlist .song {
@@ -154,12 +226,39 @@ canvas {
     margin-top: 10px;
     line-height: 2;
     font-size: 1.3rem;
-    padding: 4px 24px;
+    padding: 4px 12px;
 }
 
 /* The area where current song information is displayed */
 #content {
     max-height: 100%;
+}
+
+#vol-control {
+    width: 200px;
+}
+
+#song-seek {
+    text-align: center;
+    width: 100%;
+}
+
+#seekbar {
+    width: 100%;
+}
+
+.navbar {
+    color: #b388ff;
+    font-family: Satisfy, cursive;
+}
+
+.brand {
+    font-size: 2.5rem;
+}
+
+.btn {
+    border: none;
+    background: none;
 }
 
 /* Song name shown as entry in playlist */
@@ -170,10 +269,19 @@ canvas {
     text-overflow: ellipsis;
 }
 
+.controls {
+    font-size: 2rem;
+}
+
+.controls-lg {
+    font-size: 4rem;
+}
+
 /* CSS GRID for player layout*/
 .app-grid {
     display: grid;
     margin: 0 100px;
+    height: 100vh;
     grid-template-columns: 280px auto 280px;
     grid-template-rows: 88px 80vh;
     grid-gap: 10px;
@@ -192,8 +300,6 @@ canvas {
 }
 
 .app-grid-content {
-    display: flexbox;
-    flex-direction: row;
     grid-area: content;
 }
 
@@ -201,22 +307,110 @@ canvas {
     grid-area: playmenu;
 }
 
+
+
+@media screen and (max-width: 1200px) {
+    #playmenu {
+        display: flex;
+        justify-content: space-between;
+        flex-wrap: wrap;
+        padding-bottom: 30px;
+    }
+
+    #song-controls {
+        display: inline-block;
+        width: 100%;
+    }
+
+    #song-volume {
+        display: inline-block;
+    }
+
+    #vol-control {
+        width: 150px;
+        margin-left: auto;
+    }
+
+    .controls {
+        font-size: 1.8rem;
+    }
+    
+    .controls-lg {
+        font-size: 3rem;
+    }
+
+    .brand {
+        font-size: 2rem;
+    }
+    
+    .app-grid {
+        margin: 0 20px;
+        grid-template-rows: 60px calc(100vh - 260px) 180px;
+        grid-template-columns: 280px auto;
+        grid-template-areas:
+        "navbar navbar"
+        "sidebar content"
+        "playmenu playmenu"
+    }
+
+    
+}
+
+
+@media screen and (min-width: 901px) {
+    #pop-msg {
+        bottom: 0;
+        left: 0;
+        margin-bottom: 40px;
+        margin-left: 100px;
+    }
+}
+
 @media screen and (max-width: 900px) {
+    #side {
+        flex-direction: column;
+        flex-grow: 1;
+        border-right: none;
+    }
+
+    #content {
+        height: auto;
+    }
+
+    #vol-control {
+        width: 100px;
+    }
+
+    #pop-msg {
+        top: 0;
+        left: 0;
+        margin-top: 12px;
+        margin-left: 12px;
+        line-height: 1;
+        font-size: .9rem;
+        max-width: 80px;
+    }
+
+    .brand {
+        font-size: 1.5rem;
+    }
+
+    .controls {
+        font-size: 1.2rem;
+    }
+
     .app-grid {
         margin: 0;
-        padding: 0 10px;
+        padding: 0 12px;
         grid-template-columns: 100%;
-        grid-template-rows: 88px 60vh 60px 1fr;
+        grid-template-rows: 40px minmax(320px, 40vh) 140px calc(60vh - 240px);
         grid-template-areas:
         "navbar"
         "content"
         "playmenu"
         "sidebar";
     }
-    
-    #side {
-        border-right: none;
-    }
+      
 }
 
 /* Misc. */

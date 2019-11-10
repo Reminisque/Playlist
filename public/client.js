@@ -6,6 +6,7 @@ var nodePlaylist = (function() {
     const fwdButton = document.querySelector("#fwd-button");
     const playButton = document.querySelector("#play-button");
     const repeatButton = document.querySelector("#repeat-button");
+    const seekbar = document.querySelector("#seekbar");
     const shuffleButton = document.querySelector("#shuffle-button");
     const songPlaylist = document.querySelector("#song-playlist");
     const songCurrTime = document.querySelector("#song-curr-time");
@@ -251,8 +252,7 @@ var nodePlaylist = (function() {
 
     // Set volume to specified value
     function setVolume(value) {
-        audio.volume = value/60;
-        gain.gain.setValueAtTime(value/60, audioCtx.currentTime);
+        audio.volume = value/(parseInt(volume.max) + 10);
     }
 
     // Toggles shuffling
@@ -309,7 +309,7 @@ var nodePlaylist = (function() {
     // === Visualizer Around Circle ===
     function drawCirVis() {
         const bins = 180;
-        const halfPi = Math.PI * 0.5
+        const halfPi = Math.PI * 0.5;
 
 
         canvasContext.strokeStyle = "#b388ff";
@@ -329,10 +329,11 @@ var nodePlaylist = (function() {
         // Draw bars
         for (var i = 0; i < bins; i++) {
             // The more lively amplitudes seem to be from the earlier freqencies,
-            //  to use as much of the frequencies as possible it skips later on
+            //  so to use as much of the frequencies as possible larger skips are made later on
             let barLength = Math.pow(frequencyData[i + Math.ceil(i / 90)], 3) / Math.pow(255, 3);
 
-            barLength *= FREQ_BAR_LEN;
+            barLength *= FREQ_BAR_LEN + Math.log(i + 1) * 2;
+    
 
             canvasContext.beginPath();
 
@@ -453,8 +454,12 @@ var nodePlaylist = (function() {
     }
 
     function formatMinSec(time) {
-        let minutes = Math.floor(time / 60);
-        let seconds = ("0" + Math.ceil(time % 60)).slice(-2);        
+        if (time === Infinity) {
+            return NaN;
+        }
+        let t = parseInt(time);
+        let minutes = Math.floor(t / 60);
+        let seconds = ("0" + Math.ceil(t % 60)).slice(-2);        
         return `${minutes}:${seconds}`;
     }
 
@@ -469,14 +474,19 @@ var nodePlaylist = (function() {
         });
         audio.addEventListener("stalled", function() {
             playPause();
-            console.log("Stalled and waiting for data");
+            log("Stalled and waiting for data");
         });
         audio.addEventListener("loadedmetadata", function() {
             songCurrTime.innerHTML = "0:00";
             songDuration.innerHTML = formatMinSec(audio.duration);
+            seekbar.value = 0;
+            seekbar.max = Math.ceil(audio.duration);
+            // log(audio.duration);
+            // log(seekbar.max);
         });
         audio.addEventListener("timeupdate", function() {
            songCurrTime.innerHTML = formatMinSec(audio.currentTime);
+           seekbar.value = Math.ceil(audio.currentTime);
         });
 
         // Playlist bindings
@@ -494,6 +504,20 @@ var nodePlaylist = (function() {
         volume.addEventListener("change", function() {
             setVolume(this.value);
         });
+
+        // SEEKING CURRENTLY DOES NOT WORK PROPERLY NOR CONSISTENTLY
+        // seekbar.addEventListener("input", function() {
+        //     audio.pause();
+        //     log(`input: ${seekbar.value}`); 
+        // });
+        // seekbar.addEventListener("change", function() {
+        //     if (audio.src) {
+        //         log(seekbar.value);
+        //         audio.currentTime = parseInt(seekbar.value);
+        //         audio.play();
+        //     }
+        //     log(`change: ${seekbar.value}`); 
+        //  });
 
         // Chrome Autoplay policy suspends the audio context,
         // so have to resume on user interaction

@@ -9,7 +9,7 @@
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm"
         crossorigin="anonymous">
     <!-- Google Fonts -->
-    <link href="https://fonts.googleapis.com/css?family=Yanone+Kaffeesatz|Satisfy&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css?family=Oswald|Satisfy&display=swap" rel="stylesheet">
 
     <link rel="stylesheet" href="index.css">
 </head>
@@ -18,26 +18,25 @@
     <!-- Playlist app -->
     <div class="app-grid" id="player">
         <!-- Heading Icon -->
-        <div class="app-grid-navbar">
-            <nav class="navbar">
-                <h1 class="mx-auto">
-                    Node Playlist
-                </h1>                
-            </nav>
-        </div>
-        <div class="app-grid-sidebar px-2 text-center rounded-right" id="side">
+        <nav class="app-grid-navbar navbar">
+            <div class="brand mx-auto">
+                Node Playlist
+            </div>
+        </nav>
+        <div class="app-grid-sidebar text-center rounded-right" id="side">
             <div class="pb-3" id="side-menu">
-                
                 <div id="upload-btn">
                     <input type="file" id="upload-song">
-                    <label for="upload-song" class="iconClick"><i class="fas fa-plus-circle fa-3x"></i></label>
+                    <label for="upload-song" class="iconClick">
+                        <i class="fas fa-plus-circle fa-3x"></i>
+                    </label>
                 </div>
                 <button type="button" class="btn btn-lg" data-toggle="button"
-                    aria-pressed="false" id="shuffle-button">
+                        aria-pressed="false" id="shuffle-button">
                     <i class="fas fa-random"></i>
                 </button>
                 <button type="button" class="btn btn-lg" data-toggle="button"
-                    aria-pressed="false" id="repeat-button">
+                        aria-pressed="false" id="repeat-button">
                     <i class="fas fa-sync-alt"></i>
                 </button>
             </div>
@@ -45,24 +44,30 @@
         </div>
         <div class="app-grid-content" id="content">
             <canvas id="analyserCanvas"></canvas>
-            <audio id="audio" type="audio/mpeg"></audio>
+            <audio id="audio" type="audio/mpeg" preload="auto"></audio>
         </div>
         <div class="app-grid-playmenu" id="playmenu">
-            <nav class="navbar">
-                <div class="iconClick mx-auto">
-                        <i class="fas fa-backward fa-2x" id="bwd-button"></i>
-                        <i class="fas fa-play-circle fa-2x" id="play-button"></i>
-                        <i class="fas fa-forward fa-2x" id="fwd-button"></i>
-                </div>
-                <div class="ml-auto">
-                        <i class="fas fa-volume-up fa-2x mr-2"></i>
-                        <input type="range" id="vol-control" min="0" max="50" step="1" value="50"></input>
-                    </div>
-            </nav>
+            <div id="song-controls" class="text-center">
+                <i class="fas fa-backward controls-lg iconClick" id="bwd-button"></i>
+                <i class="fas fa-play-circle controls-lg iconClick" id="play-button"></i>
+                <i class="fas fa-forward controls-lg iconClick" id="fwd-button"></i>
+            </div>
+            <div id="song-volume" class="controls">
+                <i class="fas fa-volume-up align-middle"></i>
+                <input type="range" id="vol-control" class="align-middle" min="0" max="50" step="1" value="50">
+            </div>
+            <div id="song-time" class="controls">
+                <span id="song-curr-time">0:00</span>
+                /
+                <span id="song-duration">0:00</span>
+            </div>
+            <div id="song-seek" class="controls">
+                <input type="range" id="seekbar" class="align-middle" min="0" max="0" step="1" value="1">
+            </div>
         </div>
     </div>
 
-    <div id="pop-msg" class="bottom left show">Something</div>
+    <div id="pop-msg" class="show">Something</div>
 
     <!-- Jquery CDN -->
     <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js" integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo" crossorigin="anonymous"></script>
