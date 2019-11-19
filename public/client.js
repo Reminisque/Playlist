@@ -1,4 +1,11 @@
 var nodePlaylist = (function() {
+    const VIS_RADIUS = 100;
+    const FREQ_BAR_LEN = 300;       // Mainly for circle visualizer
+    const HALF_PI = Math.PI * 0.5;  // Mainly for circle visualizer
+    const MIRR_SIZE = 0.6;          // Mirrored bars sizing as percentage
+    const SPACING = 0.33;           // SPACING + 
+    const SPACE_MIRR_SIZE = 0.5;    // SPACE_MIRR_SIZE = 1
+    
     const audio = document.querySelector("#audio");
     const bwdButton = document.querySelector("#bwd-button");
     const canvas = document.querySelector("#analyserCanvas");
@@ -13,19 +20,17 @@ var nodePlaylist = (function() {
     const songDuration = document.querySelector("#song-duration");
     const upload = document.querySelector("#upload-song");
     const volume = document.querySelector("#vol-control");
-    
+    const visChoices = document.querySelectorAll(
+        ".vis-group .vis-choice input[name='visualizer']");
     const pop = document.querySelector("#pop-msg");
-    
-    const VIS_RADIUS = 100;
-    const FREQ_BAR_LEN = 300;
 
     let debug = true;
-    let requestID;
     
     let audioCtx = new AudioContext();
     let analyser = audioCtx.createAnalyser();
     let gain = audioCtx.createGain();
     let frequencyData;
+
     let songs = [];
     let songButtons = {};
     let shuffled = [];
@@ -33,7 +38,14 @@ var nodePlaylist = (function() {
     let shuffleIndex = -1;
     let shuffle = 0;
     let repeat = 0;
+
     let canvasContext = canvas.getContext("2d");
+
+
+    let requestID;
+
+    let visual = document.querySelector(
+        "#visualizers .vis-choice input[name='visualizer']:checked").value;
 
     let audioSrc = audioCtx.createMediaElementSource(audio);
 
@@ -307,129 +319,196 @@ var nodePlaylist = (function() {
     }
     
     // === Visualizer Around Circle ===
-    function drawCirVis() {
-        const bins = 180;
-        const halfPi = Math.PI * 0.5;
+    function drawCirVis(type) {
+        const BINS = 180;
+        const HALF_CANVAS_WIDTH = canvas.width / 2;
+        const HALF_CANVAS_HEIGHT = canvas.height / 2;
 
-
-        canvasContext.strokeStyle = "#b388ff";
         canvasContext.lineWidth = 3;
 
         // Circle at center that bars with will be draw around
         canvasContext.beginPath();
         canvasContext.arc(
-            canvas.width/2,     // center x-coord
-            canvas.height/2,    // center y-coord
-            VIS_RADIUS,          // radius
-            0,                  // start angle (radians)
-            Math.PI*2           // end angle (radians)
+            HALF_CANVAS_WIDTH,      // center x-coord
+            HALF_CANVAS_HEIGHT,     // center y-coord
+            VIS_RADIUS,             // radius
+            0,                      // start angle (radians)
+            Math.PI*2               // end angle (radians)
         );
-        canvasContext.stroke();
-
-        // Draw bars
-        for (var i = 0; i < bins; i++) {
-            // The more lively amplitudes seem to be from the earlier freqencies,
-            //  so to use as much of the frequencies as possible larger skips are made later on
-            let barLength = Math.pow(frequencyData[i + Math.ceil(i / 90)], 3) / Math.pow(255, 3);
-
-            barLength *= FREQ_BAR_LEN + Math.log(i + 1) * 2;
-    
-
-            canvasContext.beginPath();
-
-            // === Full Circle ===
-            // canvasContext.moveTo(
-            //     canvas.width/2 + VIS_RADIUS * Math.cos(Math.PI * 2 * i / bins),
-            //     canvas.height/2 + VIS_RADIUS * Math.sin( Math.PI * 2 *i / bins)
-            // )
-            // canvasContext.lineTo(
-            //     canvas.width/2 + (VIS_RADIUS + barLength) * Math.cos(Math.PI * 2 * i / bins),
-            //     canvas.height/2 + (VIS_RADIUS + barLength) * Math.sin(Math.PI * 2 * i / bins)
-            // )
-            
-            // === Opposite Horizontal Halves ===
-            // canvasContext.moveTo(
-            //     canvas.width/2 + VIS_RADIUS * Math.cos(Math.PI * i / bins),
-            //     canvas.height/2 + VIS_RADIUS * Math.sin(Math.PI * i / bins)
-            // )
-            // canvasContext.lineTo(
-            //     canvas.width/2 + (VIS_RADIUS + barLength) * Math.cos(Math.PI * i / bins),
-            //     canvas.height/2 + (VIS_RADIUS + barLength) * Math.sin(Math.PI * i / bins)
-            // )
-
-            // canvasContext.moveTo(
-            //     canvas.width/2 + VIS_RADIUS * Math.cos(Math.PI + Math.PI * i / bins),
-            //     canvas.height/2 + VIS_RADIUS * Math.sin(Math.PI + Math.PI * i / bins)
-            // )
-            // canvasContext.lineTo(
-            //     canvas.width/2 + (VIS_RADIUS + barLength) * Math.cos(Math.PI + Math.PI * i / bins),
-            //     canvas.height/2 + (VIS_RADIUS + barLength) * Math.sin(Math.PI + Math.PI * i / bins)
-            // )
-
-            // === Vertical Mirrored Halves ===
-
-            canvasContext.moveTo(
-                canvas.width/2 + VIS_RADIUS * Math.cos(Math.PI * (i) / bins - halfPi),
-                canvas.height/2 + VIS_RADIUS * Math.sin(Math.PI * (i) / bins - halfPi)
-            );
-
-            canvasContext.lineTo(
-                canvas.width/2 + (VIS_RADIUS + barLength) * Math.cos(Math.PI * (i) / bins - halfPi),
-                canvas.height/2 + (VIS_RADIUS + barLength) * Math.sin(Math.PI * (i) / bins - halfPi) 
-            )
-
-            canvasContext.moveTo(
-                canvas.width/2 + VIS_RADIUS * Math.cos(Math.PI * (bins - i - 1) / bins + halfPi),
-                canvas.height/2 + VIS_RADIUS * Math.sin(Math.PI * (bins - i - 1) / bins + halfPi)
-            );
-
-            canvasContext.lineTo(
-                canvas.width/2 + (VIS_RADIUS + barLength) * Math.cos(Math.PI * (bins - i - 1) / bins + halfPi),
-                canvas.height/2 + (VIS_RADIUS + barLength) * Math.sin(Math.PI * (bins - i - 1) / bins + halfPi) 
-            )
-
-            // Draw
-            canvasContext.stroke();
-        }
         
+        for (var i = 0; i < BINS; i++) {
+            let barLength = Math.pow(frequencyData[i + Math.ceil(i / 90)], 3) / Math.pow(255, 3);
+            barLength *= FREQ_BAR_LEN
+
+            switch(type) {
+                // === Vertical Mirrored Halves ===
+                case "mirroredY":
+                    canvasContext.moveTo(
+                        HALF_CANVAS_WIDTH + VIS_RADIUS * Math.cos(Math.PI * (i) / BINS - HALF_PI),
+                        HALF_CANVAS_HEIGHT + VIS_RADIUS * Math.sin(Math.PI * (i) / BINS - HALF_PI)
+                    );
+
+                    canvasContext.lineTo(
+                        HALF_CANVAS_WIDTH + (VIS_RADIUS + barLength) * Math.cos(Math.PI * (i) / BINS - HALF_PI),
+                        HALF_CANVAS_HEIGHT + (VIS_RADIUS + barLength) * Math.sin(Math.PI * (i) / BINS - HALF_PI) 
+                    )
+
+                    canvasContext.moveTo(
+                        HALF_CANVAS_WIDTH + VIS_RADIUS * Math.cos(Math.PI * (BINS - i - 1) / BINS + HALF_PI),
+                        HALF_CANVAS_HEIGHT + VIS_RADIUS * Math.sin(Math.PI * (BINS - i - 1) / BINS + HALF_PI)
+                    );
+
+                    canvasContext.lineTo(
+                        HALF_CANVAS_WIDTH + (VIS_RADIUS + barLength) * Math.cos(Math.PI * (BINS - i - 1) / BINS + HALF_PI),
+                        HALF_CANVAS_HEIGHT + (VIS_RADIUS + barLength) * Math.sin(Math.PI * (BINS - i - 1) / BINS + HALF_PI) 
+                    );
+                    break;
+                // === Horizontal Mirrored Halves ===
+                case "mirroredX":
+                    canvasContext.moveTo(
+                        HALF_CANVAS_WIDTH + VIS_RADIUS * Math.cos(Math.PI + Math.PI * i / BINS),
+                        HALF_CANVAS_HEIGHT + VIS_RADIUS * Math.sin(Math.PI + Math.PI * i / BINS)
+                    );
+                    canvasContext.lineTo(
+                        HALF_CANVAS_WIDTH + (VIS_RADIUS + barLength) * Math.cos(Math.PI + Math.PI * i / BINS),
+                        HALF_CANVAS_HEIGHT + (VIS_RADIUS + barLength) * Math.sin(Math.PI + Math.PI * i / BINS)
+                    );
+
+                    canvasContext.moveTo(
+                        HALF_CANVAS_WIDTH + VIS_RADIUS * Math.cos(Math.PI - Math.PI * i / BINS),
+                        HALF_CANVAS_HEIGHT + VIS_RADIUS * Math.sin(Math.PI - Math.PI * i / BINS)
+                    );
+                    canvasContext.lineTo(
+                        HALF_CANVAS_WIDTH + (VIS_RADIUS + barLength) * Math.cos(Math.PI - Math.PI * i / BINS),
+                        HALF_CANVAS_HEIGHT + (VIS_RADIUS + barLength) * Math.sin(Math.PI - Math.PI * i / BINS)
+                    );
+                    break;
+                // === Horizontal Reversed Halves ===
+                case "flippedX":
+                    canvasContext.moveTo(
+                        HALF_CANVAS_WIDTH + VIS_RADIUS * Math.cos(Math.PI * i / BINS),
+                        HALF_CANVAS_HEIGHT + VIS_RADIUS * Math.sin(Math.PI * i / BINS)
+                    );
+                    canvasContext.lineTo(
+                        HALF_CANVAS_WIDTH + (VIS_RADIUS + barLength) * Math.cos(Math.PI * i / BINS),
+                        HALF_CANVAS_HEIGHT + (VIS_RADIUS + barLength) * Math.sin(Math.PI * i / BINS)
+                    );
+
+                    canvasContext.moveTo(
+                        HALF_CANVAS_WIDTH + VIS_RADIUS * Math.cos(Math.PI + Math.PI * i / BINS),
+                        HALF_CANVAS_HEIGHT + VIS_RADIUS * Math.sin(Math.PI + Math.PI * i / BINS)
+                    );
+                    canvasContext.lineTo(
+                        HALF_CANVAS_WIDTH + (VIS_RADIUS + barLength) * Math.cos(Math.PI + Math.PI * i / BINS),
+                        HALF_CANVAS_HEIGHT + (VIS_RADIUS + barLength) * Math.sin(Math.PI + Math.PI * i / BINS)
+                    );
+                    break;
+                // === Full Circle ===
+                default:
+                    canvasContext.moveTo(
+                        HALF_CANVAS_WIDTH + VIS_RADIUS * Math.cos(Math.PI * 2 * i / BINS - HALF_PI),
+                        HALF_CANVAS_HEIGHT + VIS_RADIUS * Math.sin( Math.PI * 2 * i / BINS - HALF_PI)
+                    );
+                    canvasContext.lineTo(
+                        HALF_CANVAS_WIDTH + (VIS_RADIUS + barLength) * Math.cos(Math.PI * 2 * i / BINS - HALF_PI),
+                        HALF_CANVAS_HEIGHT + (VIS_RADIUS + barLength) * Math.sin(Math.PI * 2 * i / BINS - HALF_PI)
+                    );
+            }
+        }
+        canvasContext.stroke();      
     }
     
     // === Bar Graph Visualizer ===
-    function drawBarVis() {
-        canvasContext.fillStyle = "#b388ff";
+    function drawBarVis(type) {
+        const BINS = canvas.width / 3;
+        const BAR_WIDTH = canvas.width / BINS;
+        const HALF_CANVAS_HEIGHT = canvas.height / 2;
 
-        const bins = canvas.width / 4;
-        const barWidth = canvas.width / bins;
         let x_coord = 0;
 
         // Draw bars
-        for (var i = 0; i < bins; i++) {
-            // The more lively amplitudes seem to be from the earlier freqencies,
-            //  but to use as much of the frequencies as possible it skips later on
+        for (var i = 0; i < BINS; i++) {
             let barLength = Math.pow(frequencyData[i + Math.ceil(i / 90)], 3) / Math.pow(255, 3);
 
-            canvasContext.fillRect(
-                x_coord,
-                canvas.height - ((canvas.height-1) * barLength),
-                barWidth,
-                canvas.height * barLength
-            );
-
+            switch(type) {
+                // === Spaced Mirrored Bars ===
+                case "spacedMirrored":
+                    canvasContext.beginPath();
+                    canvasContext.moveTo(0, HALF_CANVAS_HEIGHT);
+                    canvasContext.lineTo(canvas.width, HALF_CANVAS_HEIGHT);
+                    canvasContext.stroke();
+                    // Top Half
+                    canvasContext.fillRect(
+                        x_coord,
+                        HALF_CANVAS_HEIGHT * (1 - barLength * SPACING),
+                        BAR_WIDTH,
+                        -HALF_CANVAS_HEIGHT * barLength * SPACE_MIRR_SIZE
+                    );
+                    // Bottom Half
+                    canvasContext.fillRect(
+                        x_coord,
+                        HALF_CANVAS_HEIGHT * (1 + barLength * SPACING),
+                        BAR_WIDTH,
+                        HALF_CANVAS_HEIGHT * barLength * SPACE_MIRR_SIZE
+                    );
+                    break;    
+                // === Full Bars ===          
+                case "full":
+                    canvasContext.fillRect(
+                        x_coord,
+                        HALF_CANVAS_HEIGHT,
+                        BAR_WIDTH,
+                        -HALF_CANVAS_HEIGHT * barLength
+                    );
+                    break;
+                // === Mirrored Bars ===
+                default:
+                    canvasContext.beginPath();
+                    canvasContext.moveTo(0, HALF_CANVAS_HEIGHT);
+                    canvasContext.lineTo(canvas.width, HALF_CANVAS_HEIGHT);
+                    canvasContext.stroke();
+                    canvasContext.fillRect(
+                        x_coord,
+                        HALF_CANVAS_HEIGHT * (1 - barLength * MIRR_SIZE),
+                        BAR_WIDTH,
+                        canvas.height * barLength * MIRR_SIZE
+                    );                   
+            }
             //Set new starting x-coordinate for next bar
-            x_coord += barWidth + 1;
+            x_coord += BAR_WIDTH + 1;
         }
-
     }
 
     // Updates the frequency graph visualization every frame
     function updateVis() {
         refreshCanvas();
+        canvasContext.strokeStyle = "#b388ff";
+        canvasContext.fillStyle = "#b388ff";
         
         // Get the frequency data and calculate the bar width
         analyser.getByteFrequencyData(frequencyData);
         // log(frequencyData);
-        drawCirVis();
-        // drawBarVis();
+        
+        switch(visual) {
+            case "fullBar":
+                drawBarVis("full");
+                break;
+            case "fullCircle":
+                drawCirVis("full");
+                break;
+            case "flippedCircleX":
+                drawCirVis("flippedX");
+                break;
+            case "mirroredCircleY":
+                drawCirVis("mirroredY");
+                break;
+            case "mirroredSpacedBars":
+                drawBarVis("spacedMirrored");
+                break;
+            default:
+                drawBarVis("mirrored");
+        }
+      
         // log("Frames");
         requestID = requestAnimationFrame(updateVis);
 
@@ -504,6 +583,15 @@ var nodePlaylist = (function() {
         volume.addEventListener("change", function() {
             setVolume(this.value);
         });
+        for (var i = 0; i < visChoices.length; i++) {
+            visChoices[i].addEventListener("change", function() {
+                visual = this.value;
+                log(`Visualizer selected: ${visual}`);
+            });
+        }
+    
+
+        
 
         // SEEKING CURRENTLY DOES NOT WORK PROPERLY NOR CONSISTENTLY
         // seekbar.addEventListener("input", function() {
@@ -546,6 +634,8 @@ var nodePlaylist = (function() {
         getPlaylist();
 
         setVolume(volume.value);
+        log(canvasContext.fillStyle);
+        log(canvasContext.strokeStyle);
     }
     
     return {
@@ -559,7 +649,7 @@ var nodePlaylist = (function() {
         shuffleIndex: shuffleIndex,
         repeat: toggleRepeat,
         shuffled: getShuffled,
-        init: init
+        init: init,
     }
 })();
 
